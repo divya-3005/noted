@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" />
+  <title>Noted - Markdown Notes</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- ==============================================
+         1. LEFT SIDEBAR: Notebooks & Categories
+         ============================================== -->
+    <aside class="sidebar">
+      <!-- App Header & Logo -->
+      <div class="sidebar-header">
+        <div class="brand">
+          <span class="brand-icon">📓</span>
+          <span class="brand-name">Noted</span>
+        </div>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search notes..." autocomplete="off" />
+        <button id="search-clear-btn" class="icon-btn-subtle" title="Clear search" style="display: none;">✕</button>
+      </div>
+
+      <!-- Notebooks Section -->
+      <div class="sidebar-section-header">
+        <span>NOTEBOOKS</span>
+        <button id="btn-add-notebook" class="icon-btn-small" title="Create Notebook">+</button>
+      </div>
+
+      <nav class="notebook-nav">
+        <!-- All Notes Item -->
+        <div class="notebook-item active" data-id="all">
+          <span class="item-icon">📂</span>
+          <span class="item-name">All Notes</span>
+          <span class="item-count" id="count-all">0</span>
+        </div>
+
+        <!-- Custom Notebooks List (Populated via JS) -->
+        <div id="notebooks-list"></div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <span class="footer-hint">Inspired by Joplin · Beginner Friendly</span>
+      </div>
+    </aside>
+
+    <!-- ==============================================
+         2. MIDDLE COLUMN: Notes List
+         ============================================== -->
+    <section class="notes-column">
+      <div class="column-header">
+        <div class="column-title-wrap">
+          <h2 id="active-notebook-title">All Notes</h2>
+          <span class="notes-badge" id="notes-badge">0 notes</span>
+        </div>
+        <button id="btn-new-note" class="btn-primary" title="Create a new note">
+          <span>+</span> New Note
+        </button>
+      </div>
+
+      <!-- Scrollable list of notes -->
+      <div id="notes-list" class="notes-list">
+        <!-- Populated via app.js -->
+      </div>
+
+      <!-- Empty state when no notes exist or match search -->
+      <div id="notes-empty-state" class="empty-state" style="display: none;">
+        <span class="empty-icon">📝</span>
+        <p class="empty-text">No notes found</p>
+        <button id="btn-empty-create" class="btn-secondary">Create your first note</button>
+      </div>
+    </section>
+
+    <!-- ==============================================
+         3. RIGHT COLUMN: Markdown Editor & Preview
+         ============================================== -->
+    <main class="editor-column" id="editor-column">
+      <!-- Editor Top Bar -->
+      <div class="editor-header">
+        <div class="editor-meta">
+          <input
+            type="text"
+            id="note-title"
+            class="note-title-input"
+            placeholder="Untitled Note..."
+            autocomplete="off"
+          />
+          <div class="notebook-selector-wrap">
+            <label for="note-notebook-select">Notebook:</label>
+            <select id="note-notebook-select" class="notebook-select"></select>
+          </div>
+        </div>
+
+        <!-- Right actions: View mode toggles & Export -->
+        <div class="editor-actions">
+          <div class="view-mode-group">
+            <button id="btn-view-edit" class="mode-btn" title="Editor only">Edit</button>
+            <button id="btn-view-split" class="mode-btn active" title="Split view (Side-by-side)">Split</button>
+            <button id="btn-view-preview" class="mode-btn" title="Preview only">Preview</button>
+          </div>
+
+          <div class="divider-v"></div>
+
+          <button id="btn-export-note" class="btn-action" title="Export as Markdown (.md)">
+            <span>💾</span> Export
+          </button>
+          <button id="btn-delete-note" class="btn-action btn-danger" title="Delete note">
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Formatting Toolbar -->
+      <div class="editor-toolbar" id="editor-toolbar">
+        <button class="tool-btn" data-action="bold" title="Bold (**text**)"><strong>B</strong></button>
+        <button class="tool-btn" data-action="italic" title="Italic (*text*)"><em>I</em></button>
+        <button class="tool-btn" data-action="strike" title="Strikethrough (~~text~~)"><del>S</del></button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" data-action="h1" title="Heading 1 (# Heading)">H1</button>
+        <button class="tool-btn" data-action="h2" title="Heading 2 (## Heading)">H2</button>
+        <button class="tool-btn" data-action="h3" title="Heading 3 (### Heading)">H3</button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" data-action="ul" title="Bullet List (- item)">• List</button>
+        <button class="tool-btn" data-action="ol" title="Numbered List (1. item)">1. List</button>
+        <button class="tool-btn" data-action="task" title="Task List (- [ ] task)">☑ Task</button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" data-action="quote" title="Quote (> quote)">“ Quote</button>
+        <button class="tool-btn" data-action="code" title="Code block (\`\`\`)">&lt;/&gt;</button>
+        <button class="tool-btn" data-action="link" title="Link ([text](url))">🔗 Link</button>
+        <button class="tool-btn" data-action="hr" title="Horizontal rule (---)">―</button>
+      </div>
+
+      <!-- Dual Panes: Markdown Textarea & Live Rendered HTML -->
+      <div class="editor-workspace mode-split" id="editor-workspace">
+        <!-- Raw Markdown Input -->
+        <div class="pane pane-editor" id="pane-editor">
+          <textarea
+            id="note-body"
+            class="markdown-textarea"
+            placeholder="Type your markdown here..."
+            spellcheck="true"
+          ></textarea>
+        </div>
+
+        <!-- Rendered HTML Preview -->
+        <div class="pane pane-preview" id="pane-preview">
+          <div id="note-preview-content" class="markdown-body">
+            <!-- Rendered via marked.min.js in app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Bar at the bottom -->
+      <footer class="editor-statusbar">
+        <div class="status-left">
+          <span id="save-status" class="save-status saved">
+            <span class="status-dot"></span> Saved
+          </span>
+        </div>
+        <div class="status-right">
+          <span id="note-stats">0 words · 0 characters</span>
+          <span class="status-separator">·</span>
+          <span id="note-updated-time">Updated just now</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ==============================================
+       MODAL: Create / Rename Notebook
+       ============================================== -->
+  <div id="notebook-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <h3 id="modal-title">Create New Notebook</h3>
+      <input
+        type="text"
+        id="modal-input"
+        class="modal-input"
+        placeholder="Notebook name (e.g. Recipes 🍳, Study 📚)"
+        maxlength="40"
+      />
+      <div class="modal-actions">
+        <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
+        <button id="modal-confirm-btn" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="vendor/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
