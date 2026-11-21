@@ -25,7 +25,7 @@ const initialData = store.load();
 assert.strictEqual(Array.isArray(initialData.notebooks), true, 'Notebooks should be an array');
 assert.strictEqual(Array.isArray(initialData.notes), true, 'Notes should be an array');
 assert.strictEqual(initialData.notebooks.length >= 3, true, 'Should have at least 3 starter notebooks');
-assert.strictEqual(initialData.notes.length >= 3, true, 'Should have at least 3 starter notes');
+assert.strictEqual(initialData.notes.length >= 1, true, 'Should have at least 1 starter note');
 console.log('✅ Test 1 Passed: Initial data loaded correctly');
 
 // Test 2: Creating a new note

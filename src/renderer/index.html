@@ -133,15 +133,24 @@
         <button class="tool-btn" data-action="task" title="Task List (- [ ] task)">☑ Task</button>
         <div class="tool-divider"></div>
         <button class="tool-btn" data-action="quote" title="Quote (> quote)">“ Quote</button>
-        <button class="tool-btn" data-action="code" title="Code block (\`\`\`)">&lt;/&gt;</button>
+        <button class="tool-btn" data-action="code" title="Code block (```)">&lt;/&gt;</button>
         <button class="tool-btn" data-action="link" title="Link ([text](url))">🔗 Link</button>
         <button class="tool-btn" data-action="hr" title="Horizontal rule (---)">―</button>
+
+        <div class="tool-spacer"></div>
+        <button class="tool-btn tool-btn-highlight" id="btn-open-guide" title="Open Markdown Guide">
+          <span>📖</span> Markdown Guide
+        </button>
       </div>
 
-      <!-- Dual Panes: Markdown Textarea & Live Rendered HTML -->
+      <!-- Dual Panes: Markdown Textarea & Live Rendered HTML (Simultaneous Two-Way Editing) -->
       <div class="editor-workspace mode-split" id="editor-workspace">
         <!-- Raw Markdown Input -->
         <div class="pane pane-editor" id="pane-editor">
+          <div class="pane-header">
+            <span class="pane-title">📝 Markdown Source</span>
+            <span class="pane-hint">Type Markdown here</span>
+          </div>
           <textarea
             id="note-body"
             class="markdown-textarea"
@@ -150,10 +159,20 @@
           ></textarea>
         </div>
 
-        <!-- Rendered HTML Preview -->
+        <!-- Rendered HTML Preview & Editable Visual Text -->
         <div class="pane pane-preview" id="pane-preview">
-          <div id="note-preview-content" class="markdown-body">
-            <!-- Rendered via marked.min.js in app.js -->
+          <div class="pane-header">
+            <span class="pane-title">✍️ Visual Text</span>
+            <span class="pane-hint pane-hint-badge">Type here too · Live Sync</span>
+          </div>
+          <div
+            id="note-preview-content"
+            class="markdown-body visual-editable"
+            contenteditable="true"
+            spellcheck="true"
+            data-placeholder="Start typing formatted text here..."
+          >
+            <!-- Rendered via marked.min.js & editable in app.js -->
           </div>
         </div>
       </div>
@@ -190,6 +209,43 @@
       <div class="modal-actions">
         <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
         <button id="modal-confirm-btn" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================
+       MODAL: Markdown Guide Reference
+       ============================================== -->
+  <div id="guide-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card modal-card-wide">
+      <div class="modal-header-row">
+        <h3>📖 Markdown Formatting Guide</h3>
+        <button id="guide-close-btn" class="icon-btn-subtle" style="font-size: 16px;">✕</button>
+      </div>
+      <div class="guide-content">
+        <table class="guide-table">
+          <thead>
+            <tr><th>Element</th><th>Markdown Syntax</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Heading 1</td><td><code># Title</code></td><td><strong>Large Heading</strong></td></tr>
+            <tr><td>Heading 2</td><td><code>## Section</code></td><td><strong>Subheading</strong></td></tr>
+            <tr><td>Bold</td><td><code>**bold**</code></td><td><strong>bold</strong></td></tr>
+            <tr><td>Italic</td><td><code>*italic*</code></td><td><em>italic</em></td></tr>
+            <tr><td>Strikethrough</td><td><code>~~text~~</code></td><td><del>text</del></td></tr>
+            <tr><td>Bullet List</td><td><code>- Item</code></td><td>• Item</td></tr>
+            <tr><td>Numbered List</td><td><code>1. Item</code></td><td>1. Item</td></tr>
+            <tr><td>Task List</td><td><code>- [ ] Task</code></td><td>☑ Task Checkbox</td></tr>
+            <tr><td>Blockquote</td><td><code>> Quote</code></td><td>Callout quote</td></tr>
+            <tr><td>Code</td><td><code>`code`</code></td><td><code>code</code></td></tr>
+            <tr><td>Link</td><td><code>[Text](url)</code></td><td><a href="#">Link</a></td></tr>
+            <tr><td>Divider</td><td><code>---</code></td><td>Horizontal line</td></tr>
+          </tbody>
+        </table>
+        <p class="guide-footer-note">💡 <strong>Tip:</strong> In Split view, you can edit either the <strong>Markdown</strong> on the left or the <strong>Visual Text</strong> on the right—they update simultaneously in real time!</p>
+      </div>
+      <div class="modal-actions">
+        <button id="guide-ok-btn" class="btn-primary">Got it</button>
       </div>
     </div>
   </div>

@@ -24,11 +24,13 @@ const INITIAL_DATA = {
       title: 'Welcome to Noted! 👋',
       body: `# Welcome to Noted! 👋
 
-Noted is a simple, lightweight Markdown note-taking app inspired by **Joplin**.
+Noted is a simple, lightweight note-taking app inspired by **Joplin**.
 
 ### 🚀 Key Features
-- **Notebooks & Organization**: Categorize notes into folders just like Joplin.
-- **Live Markdown Preview**: See your rendered markdown side-by-side as you type.
+- **Notebooks & Organization**: Categorize notes into folders.
+- **Simultaneous Two-Way Editing**:
+  - Type in the **Markdown** pane, and the formatted text updates live.
+  - Or type directly in the **Visual Text** pane, and the Markdown generates simultaneously!
 - **Auto-Save**: Changes save automatically as you write.
 - **Fast Search**: Instantly find notes by keyword in title or content.
 - **Export**: Export any note to a standard \`.md\` file with one click.
@@ -36,93 +38,13 @@ Noted is a simple, lightweight Markdown note-taking app inspired by **Joplin**.
 
 ### ⌨️ Quick Tips
 - Click **+ New Note** to create a blank note in the current notebook.
-- Use the formatting buttons in the toolbar to quickly format text.
+- Use the formatting buttons in the toolbar to format text.
+- Click **📖 Guide** in the toolbar for a quick Markdown syntax reference.
 - Switch between **Edit**, **Split**, and **Preview** modes using the top-right buttons.
 
 Enjoy writing! 🎉`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'note-markdown-guide',
-      notebookId: 'nb-personal',
-      title: 'Markdown Cheat Sheet 📝',
-      body: `# Markdown Formatting Guide
-
-Noted supports standard Markdown. Here are quick examples:
-
-## Headings
-# Heading 1
-## Heading 2
-### Heading 3
-
-## Text Formatting
-- **Bold text** with \`**bold**\`
-- *Italic text* with \`*italic*\`
-- ~~Strikethrough~~ with \`~~text~~\`
-- \`Inline code\` with backticks
-
-## Task Lists / Checklists
-- [x] Clone the Noted repository
-- [x] Read this markdown guide
-- [ ] Create my own custom notebook
-- [ ] Write my first personal note
-
-## Blockquotes
-> Keep notes organized and simple.
-
-## Code Blocks
-\`\`\`javascript
-function helloWorld() {
-  console.log("Hello from Noted!");
-}
-helloWorld();
-\`\`\`
-
-## Tables
-| Feature | Status | Notes |
-| :--- | :---: | :--- |
-| Markdown Editor | ✅ | Real-time preview |
-| File Storage | ✅ | Clean JSON storage |
-| Beginner Friendly | ✅ | Easy to read code |
-`,
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000).toISOString()
-    },
-    {
-      id: 'note-architecture',
-      notebookId: 'nb-ideas',
-      title: "Beginner's Guide to this Electron Codebase 💡",
-      body: `# How this Electron App Works (Under the Hood)
-
-If you are new to Electron or desktop development, this project was built for you!
-
-Here is how the project files are arranged:
-
-\`\`\`
-src/
-├── main/         <-- Node.js side (Runs on your OS, manages windows & files)
-│   ├── main.js   <-- Electron app lifecycle & IPC message handlers
-│   └── store.js  <-- Reads & writes notes to a local JSON file
-├── preload/      <-- The Secure Bridge
-│   └── preload.js<-- Safely exposes APIs to the UI via contextBridge
-└── renderer/     <-- Web frontend (What you see on the screen)
-    ├── index.html<-- 3-column Joplin-style layout (Notebooks, Notes, Editor)
-    ├── styles.css<-- Clean styling and typography
-    └── app.js    <-- UI logic, event listeners, and markdown rendering
-\`\`\`
-
-### 3 Core Concepts:
-1. **Main Process (\`src/main/main.js\`)**:
-   Runs in Node.js. It manages the application window and communicates with the operating system.
-2. **Preload Script (\`src/preload/preload.js\`)**:
-   Acts as a secure bridge. In modern Electron, web pages should not directly touch the filesystem. The preload script exposes safe helper functions (like \`saveNote\` or \`loadData\`) onto \`window.notedAPI\`.
-3. **Renderer Process (\`src/renderer/\`)**:
-   Standard HTML, CSS, and JavaScript running inside the browser window. It interacts with the main process via \`window.notedAPI\`.
-
-Feel free to open and modify the code! 🚀`,
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-      updatedAt: new Date(Date.now() - 7200000).toISOString()
     }
   ]
 };
@@ -166,10 +88,14 @@ class Store {
       const raw = fs.readFileSync(targetPath, 'utf8');
       const parsed = JSON.parse(raw);
 
-      // Ensure expected structure exists
+      // Filter out older starter guides so personal notes stay clean
+      const cleanedNotes = (Array.isArray(parsed.notes) ? parsed.notes : []).filter(
+        (n) => n.id !== 'note-architecture' && n.id !== 'note-markdown-guide'
+      );
+
       return {
         notebooks: Array.isArray(parsed.notebooks) ? parsed.notebooks : [],
-        notes: Array.isArray(parsed.notes) ? parsed.notes : []
+        notes: cleanedNotes
       };
     } catch (err) {
       console.error('Error reading storage file, returning fallback:', err);

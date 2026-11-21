@@ -547,6 +547,21 @@ button {
   margin: 0 4px;
 }
 
+.tool-spacer {
+  flex: 1;
+}
+
+.tool-btn-highlight {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.tool-btn-highlight:hover {
+  background-color: #c7d2fe;
+}
+
 /* Workspace Panes */
 .editor-workspace {
   flex: 1;
@@ -558,7 +573,40 @@ button {
 .pane {
   flex: 1;
   height: 100%;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pane-header {
+  padding: 6px 16px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  user-select: none;
+}
+
+.pane-title {
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.2px;
+}
+
+.pane-hint {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.pane-hint-badge {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 10.5px;
 }
 
 /* View mode toggles */
@@ -586,7 +634,7 @@ button {
 
 .markdown-textarea {
   width: 100%;
-  height: 100%;
+  flex: 1;
   padding: 20px;
   font-family: var(--font-mono);
   font-size: 14px;
@@ -597,6 +645,18 @@ button {
   color: #1e293b;
   background: transparent;
   user-select: text;
+  overflow-y: auto;
+}
+
+.visual-editable {
+  flex: 1;
+  overflow-y: auto;
+  outline: none;
+  cursor: text;
+}
+
+.visual-editable:focus {
+  outline: none;
 }
 
 /* ==========================================================================
@@ -813,4 +873,55 @@ button {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* Wide Modal for Markdown Guide */
+.modal-card-wide {
+  width: 580px;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.guide-content {
+  overflow-y: auto;
+  max-height: 55vh;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
+
+.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.guide-table th,
+.guide-table td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.guide-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+}
+
+.guide-footer-note {
+  font-size: 12px;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 8px 12px;
+  border-radius: 6px;
+  line-height: 1.4;
 }
