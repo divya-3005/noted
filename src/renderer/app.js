@@ -914,32 +914,54 @@ function escapeRegex(string) {
 
 async function uploadPhotoFromMac() {
   try {
-    const res = await window.notedAPI.pickImage();
-    if (!res || res.canceled) return;
-    insertAtCursor(`\n${res.markdown}\n`);
+    if (window.notedAPI && typeof window.notedAPI.pickImage === 'function') {
+      const res = await window.notedAPI.pickImage();
+      if (!res || res.canceled) return;
+      insertAtCursor(`\n${res.markdown}\n`);
+    } else {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = ev.target.result;
+          insertAtCursor(`\n![${file.name}](${dataUrl})\n`);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
   } catch (err) {
     console.error('Failed to pick photo:', err);
   }
 }
 
 function insertAtCursor(textToInsert) {
-  const isVisual = document.activeElement === dom.notePreviewContent || dom.notePreviewContent.contains(document.activeElement);
-
-  if (isVisual) {
-    document.execCommand('insertHTML', false, marked.parse(textToInsert));
-    updateMarkdownFromVisual();
-  } else {
-    const ta = dom.noteBody;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const full = ta.value;
-    ta.value = full.substring(0, start) + textToInsert + full.substring(end);
-    ta.focus();
-    ta.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
-    updatePreviewFromMarkdown();
-    updateStats(ta.value);
-    triggerAutoSave();
+  if (!state.selectedNoteId) {
+    const first = state.notes.find((n) => !n.isTrash);
+    if (first) {
+      selectNote(first.id);
+    } else {
+      createNewNote();
+    }
   }
+
+  const ta = dom.noteBody;
+  const start = ta.selectionStart != null ? ta.selectionStart : (ta.value || '').length;
+  const end = ta.selectionEnd != null ? ta.selectionEnd : (ta.value || '').length;
+  const full = ta.value || '';
+
+  ta.value = full.substring(0, start) + textToInsert + full.substring(end);
+  ta.focus();
+  const nextPos = start + textToInsert.length;
+  ta.setSelectionRange(nextPos, nextPos);
+
+  updatePreviewFromMarkdown();
+  updateStats(ta.value);
+  triggerAutoSave();
 }
 
 function openReferencePicker() {
@@ -1366,9 +1388,6 @@ function setupEventListeners() {
     }
   });
 
-  dom.btnUploadPhoto.addEventListener('click', uploadPhotoFromMac);
-  dom.btnInsertRef.addEventListener('click', openReferencePicker);
-
   dom.btnToggleOutline.addEventListener('click', () => {
     state.outlineOpen = !state.outlineOpen;
     dom.outlineDrawer.style.display = state.outlineOpen ? 'flex' : 'none';
@@ -1481,8 +1500,6 @@ function setupEventListeners() {
       dom.notebookModal.style.display = 'none';
       dom.exportMenu.style.display = 'none';
       dom.referenceModal.style.display = 'none';
-    }
-  });
     }
   });
 }
