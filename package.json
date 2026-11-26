@@ -4,7 +4,7 @@
   "description": "A fast, elegant, local-first Markdown workspace engineered for focused thinking and writing.",
   "main": "src/main/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
     "test": "node src/main/store.test.js",
     "dist": "electron-builder --mac dmg"
   },
