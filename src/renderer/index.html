@@ -9,20 +9,20 @@
 </head>
 <body data-theme="light">
   <div class="app-layout" id="app-layout">
-    <!-- Left Navigation -->
+    <!-- Left Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="brand">
-          <svg class="brand-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <svg class="brand-mark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           <span class="brand-name">Noted</span>
         </div>
-        <button id="btn-toggle-focus" class="icon-btn-subtle" title="Focus mode (⌘⇧F)">
+        <button id="btn-toggle-focus" class="icon-btn-subtle" title="Focus Mode (⌘⇧F)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
         </button>
       </div>
 
       <div class="search-box">
-        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="search-input" placeholder="Search" autocomplete="off" />
         <span class="search-shortcut">⌘F</span>
         <button id="search-clear-btn" class="icon-btn-subtle" title="Clear search" style="display: none;">✕</button>
@@ -32,21 +32,21 @@
         <div class="nav-group">
           <div class="nav-item active" data-view="all" id="nav-all">
             <span class="item-icon-svg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
             </span>
             <span class="item-name">All Notes</span>
             <span class="item-count" id="count-all">0</span>
           </div>
           <div class="nav-item" data-view="starred" id="nav-starred">
             <span class="item-icon-svg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </span>
             <span class="item-name">Starred</span>
             <span class="item-count" id="count-starred">0</span>
           </div>
           <div class="nav-item" data-view="trash" id="nav-trash">
             <span class="item-icon-svg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </span>
             <span class="item-name">Trash</span>
             <span class="item-count" id="count-trash">0</span>
@@ -72,7 +72,7 @@
 
       <div class="sidebar-footer">
         <button id="btn-theme-toggle" class="sidebar-action-btn" title="Toggle theme">
-          <svg class="theme-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <span id="theme-label">Theme</span>
         </button>
         <button id="btn-shortcuts-modal" class="sidebar-action-btn-icon" title="Shortcuts (?)">
@@ -81,7 +81,7 @@
       </div>
     </aside>
 
-    <!-- Notes List Column -->
+    <!-- Notes List -->
     <section class="notes-column" id="notes-column">
       <div class="column-header">
         <div class="column-title-wrap">
@@ -95,9 +95,9 @@
             <option value="title">Title</option>
           </select>
           <button id="btn-empty-trash" class="btn-danger-outline" style="display: none;">Empty Trash</button>
-          <button id="btn-new-note" class="btn-primary" title="New note (⌘N)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>New Note</span>
+          <button id="btn-new-note" class="btn-primary" title="New Note (⌘N)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>New</span>
           </button>
         </div>
       </div>
@@ -112,51 +112,61 @@
 
     <!-- Editor Column -->
     <main class="editor-column" id="editor-column">
+      <!-- Breadcrumb Meta -->
+      <div class="editor-top-meta">
+        <div class="note-notebook-dropdown-wrap">
+          <button id="btn-notebook-picker" class="note-notebook-pill" title="Change Notebook">
+            <span id="current-notebook-name">Engineering</span>
+            <span class="pill-caret">▾</span>
+          </button>
+          <select id="note-notebook-select" class="hidden-notebook-select"></select>
+        </div>
+        <span class="meta-dot">/</span>
+        <span id="note-header-date" class="meta-date">Updated recently</span>
+      </div>
+
       <div class="editor-header">
         <div class="editor-meta">
           <button id="btn-star-note" class="icon-star-btn" title="Star note (⌘⇧P)">
             <svg class="star-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           </button>
-          <input type="text" id="note-title" class="note-title-input" placeholder="Title" autocomplete="off" />
-          <div class="notebook-selector-wrap">
-            <select id="note-notebook-select" class="notebook-select" title="Notebook"></select>
-          </div>
+          <input type="text" id="note-title" class="note-title-input" placeholder="Untitled Note" autocomplete="off" />
         </div>
 
         <div class="editor-actions">
           <button id="btn-toggle-outline" class="btn-action" title="Outline (⌘⇧O)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             <span>Outline</span>
           </button>
 
           <div class="view-mode-group">
-            <button id="btn-view-edit" class="mode-btn" title="Editor (⌘1)">Edit</button>
-            <button id="btn-view-split" class="mode-btn active" title="Split (⌘2)">Split</button>
-            <button id="btn-view-preview" class="mode-btn" title="Preview (⌘3)">Preview</button>
+            <button id="btn-view-edit" class="mode-btn" title="Editor only (⌘1)">Edit</button>
+            <button id="btn-view-split" class="mode-btn active" title="Split view (⌘2)">Split</button>
+            <button id="btn-view-preview" class="mode-btn" title="Preview only (⌘3)">Preview</button>
           </div>
 
           <div class="divider-v"></div>
 
           <div class="dropdown-wrap">
             <button id="btn-export-dropdown" class="btn-action" title="Export">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>Export</span>
             </button>
             <div id="export-menu" class="dropdown-menu" style="display: none;">
               <button class="dropdown-item" data-export="md">Markdown (.md)</button>
-              <button class="dropdown-item" data-export="html">HTML (.html)</button>
+              <button class="dropdown-item" data-export="html">HTML Webpage (.html)</button>
               <button class="dropdown-item" data-export="txt">Plain Text (.txt)</button>
               <button class="dropdown-item" data-export="print">Print / PDF</button>
             </div>
           </div>
 
           <button id="btn-duplicate-note" class="btn-action" title="Duplicate (⌘D)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </button>
 
           <button id="btn-restore-note" class="btn-action btn-success" style="display: none;" title="Restore note">Restore</button>
-          <button id="btn-delete-note" class="btn-action btn-danger" title="Delete">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <button id="btn-delete-note" class="btn-action btn-danger" title="Delete note">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
         </div>
       </div>
@@ -169,7 +179,7 @@
         </div>
       </div>
 
-      <!-- Clean Minimal Formatting Toolbar -->
+      <!-- Toolbar -->
       <div class="editor-toolbar" id="editor-toolbar">
         <button class="tool-btn" data-action="bold" title="Bold"><strong>B</strong></button>
         <button class="tool-btn" data-action="italic" title="Italic"><em>I</em></button>
@@ -180,7 +190,7 @@
         <button class="tool-btn" data-action="h3" title="Heading 3">H3</button>
         <div class="tool-divider"></div>
         <button class="tool-btn" data-action="ul" title="List">• List</button>
-        <button class="tool-btn" data-action="task" title="Task List">☑ Task</button>
+        <button class="tool-btn" data-action="task" title="Checklist">☑ Task</button>
         <div class="tool-divider"></div>
         <button class="tool-btn" data-action="quote" title="Quote">” Quote</button>
         <button class="tool-btn" data-action="code" title="Code">&lt;/&gt;</button>
@@ -189,7 +199,7 @@
         <button class="tool-btn" data-action="hr" title="Divider">—</button>
 
         <div class="tool-spacer"></div>
-        <button class="tool-btn" id="btn-open-guide" title="Markdown guide">Help</button>
+        <button class="tool-btn" id="btn-open-guide" title="Markdown Reference">Help</button>
       </div>
 
       <div class="workspace-wrapper">
@@ -218,7 +228,7 @@
           <span id="note-updated-time">Updated</span>
         </div>
         <div class="status-right">
-          <span id="note-stats-btn" class="stats-badge" title="Word & reading count">
+          <span id="note-stats-btn" class="stats-badge" title="Word & character count">
             <span id="stats-words">0 words</span> · <span id="stats-readtime">1m read</span>
           </span>
         </div>
@@ -321,7 +331,7 @@
           <kbd class="shortcut-key">⌘F</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Star / Unstar note</span>
+          <span class="shortcut-desc">Star note</span>
           <kbd class="shortcut-key">⌘⇧P</kbd>
         </div>
         <div class="shortcut-row">

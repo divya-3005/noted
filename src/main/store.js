@@ -9,37 +9,39 @@ const INITIAL_DATA = {
     focusMode: false
   },
   notebooks: [
-    { id: 'nb-notes', name: 'Notes', createdAt: new Date().toISOString() },
-    { id: 'nb-work', name: 'Work', createdAt: new Date().toISOString() },
-    { id: 'nb-reading', name: 'Reading', createdAt: new Date().toISOString() }
+    { id: 'nb-eng', name: 'Engineering', createdAt: new Date().toISOString() },
+    { id: 'nb-personal', name: 'Personal', createdAt: new Date().toISOString() },
+    { id: 'nb-archive', name: 'Archive', createdAt: new Date().toISOString() }
   ],
   notes: [
     {
-      id: 'note-welcome',
-      notebookId: 'nb-notes',
-      title: 'Welcome to Noted',
-      body: `# Welcome to Noted
+      id: 'note-roadmap',
+      notebookId: 'nb-eng',
+      title: 'Product Roadmap & Architecture',
+      body: `# Product Roadmap & Architecture #dev #roadmap
 
-A distraction-free, local Markdown editor built for fast daily writing.
+Local-first desktop workspace notes, design decisions, and sprint milestones.
 
-### Getting started
-- **Create**: Hit \`⌘N\` to start a new note.
-- **Organize**: Tag notes anywhere using \`#tags\` like #ideas or #drafts.
-- **Navigate**: Click **Outline** in the top bar to jump across sections.
-- **Zen mode**: Press \`⌘⇧F\` to hide the sidebars and focus on writing.
+### Current Priorities
+- [x] High-performance Markdown rendering pipeline
+- [x] Dynamic tag indexing and real-time filtering
+- [x] Document outline tree navigation
+- [ ] Multi-window workspace support
 
-### Markdown syntax
-- Headings: \`#\`, \`##\`, \`###\`
-- Formatting: \`**bold**\`, \`*italic*\`, \`~~strike~~\`, \`\` \`code\` \`\`
-- Lists: \`- bullet\` or \`1. numbered\`
-- Checklists: \`- [ ] todo\` and \`- [x] done\`
-- Quotes: \`> blockquote\`
-- Dividers: \`---\`
+### Architecture Principles
+- **Local Persistence**: State serializes atomically to JSON on disk without remote roundtrips.
+- **Data Portability**: Clean CommonMark markdown output with zero proprietary metadata locks.
+- **Instant Search**: In-memory inverted index across note titles, tags, and document bodies.
 
-All notes are stored as plain JSON on your disk. No accounts, no cloud lock-in.`,
+### System Shortcuts
+- \`⌘N\` New note
+- \`⌘F\` Search notes & tags
+- \`⌘⇧F\` Zen focus mode
+- \`⌘⇧P\` Pin note to top
+- \`⌘1 / ⌘2 / ⌘3\` Switch between Edit, Split, and Preview`,
       isPinned: true,
       isTrash: false,
-      tags: ['guide', 'notes'],
+      tags: ['dev', 'roadmap'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -87,18 +89,44 @@ class Store {
       const raw = fs.readFileSync(targetPath, 'utf8');
       const parsed = JSON.parse(raw);
 
-      const notes = (Array.isArray(parsed.notes) ? parsed.notes : []).map((n) => ({
-        ...n,
-        isPinned: Boolean(n.isPinned),
-        isTrash: Boolean(n.isTrash),
-        tags: Array.isArray(n.tags) ? n.tags : extractTags(`${n.title || ''} ${n.body || ''}`)
+      // Clean legacy AI tutorial content or emoji pollution from older runs
+      let notebooks = (Array.isArray(parsed.notebooks) ? parsed.notebooks : []).map((nb) => ({
+        ...nb,
+        name: (nb.name || '').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim() || 'Notes'
       }));
 
-      return {
+      if (notebooks.length === 0) {
+        notebooks = INITIAL_DATA.notebooks;
+      }
+
+      let notes = (Array.isArray(parsed.notes) ? parsed.notes : [])
+        .filter((n) => !n.body || (!n.body.includes('Beginner-friendly') && !n.body.includes('3 Core Concepts: Main Process')))
+        .map((n) => {
+          if (n.id === 'note-welcome' && (n.body.includes('Joplin') || n.body.includes('Enjoy writing'))) {
+            return INITIAL_DATA.notes[0];
+          }
+          return {
+            ...n,
+            title: (n.title || 'Untitled Note').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim(),
+            isPinned: Boolean(n.isPinned),
+            isTrash: Boolean(n.isTrash),
+            tags: Array.isArray(n.tags) ? n.tags : extractTags(`${n.title || ''} ${n.body || ''}`)
+          };
+        });
+
+      if (notes.length === 0) {
+        notes = INITIAL_DATA.notes;
+      }
+
+      const sanitizedData = {
         settings: parsed.settings || { theme: 'light', sortBy: 'updated', focusMode: false },
-        notebooks: Array.isArray(parsed.notebooks) ? parsed.notebooks : [],
+        notebooks,
         notes
       };
+
+      // Save sanitized state so user's disk file is permanently cleaned
+      this.save(sanitizedData);
+      return sanitizedData;
     } catch (err) {
       console.error('Storage read error, using fallback:', err);
       return JSON.parse(JSON.stringify(INITIAL_DATA));

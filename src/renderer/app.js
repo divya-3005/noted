@@ -46,9 +46,11 @@ const dom = {
   emptyStateText: document.getElementById('empty-state-text'),
   btnEmptyCreate: document.getElementById('btn-empty-create'),
 
+  currentNotebookName: document.getElementById('current-notebook-name'),
+  noteNotebookSelect: document.getElementById('note-notebook-select'),
+  noteHeaderDate: document.getElementById('note-header-date'),
   btnStarNote: document.getElementById('btn-star-note'),
   noteTitle: document.getElementById('note-title'),
-  noteNotebookSelect: document.getElementById('note-notebook-select'),
   btnToggleOutline: document.getElementById('btn-toggle-outline'),
   btnViewEdit: document.getElementById('btn-view-edit'),
   btnViewSplit: document.getElementById('btn-view-split'),
@@ -197,7 +199,7 @@ function renderTagsCloud() {
     const chip = document.createElement('div');
     const isCur = state.activeView === `tag:${tag}`;
     chip.className = `tag-chip ${isCur ? 'active' : ''}`;
-    chip.innerHTML = `#${escapeHtml(tag)} <span style="opacity: 0.6; font-size: 9.5px; margin-left: 3px;">${tagCounts[tag]}</span>`;
+    chip.innerHTML = `#${escapeHtml(tag)} <span style="opacity: 0.6; font-size: 9.5px; margin-left: 2px;">${tagCounts[tag]}</span>`;
     chip.addEventListener('click', () => {
       setActiveView(`tag:${tag}`);
     });
@@ -314,8 +316,6 @@ function renderNotesList() {
       .replace(/\[.*?\]\(.*?\)/g, '')
       .trim() || 'Empty note';
 
-    const words = (note.body || '').trim().split(/\s+/).filter(Boolean).length;
-    const readTime = Math.max(1, Math.ceil(words / 200));
     const tagsHtml = (note.tags || []).slice(0, 3).map((t) => `<span class="tag-pill">#${escapeHtml(t)}</span>`).join('');
 
     card.innerHTML = `
@@ -349,7 +349,12 @@ function selectNote(noteId) {
   });
 
   dom.noteTitle.value = note.title || '';
-  dom.noteNotebookSelect.value = note.notebookId || (state.notebooks[0] ? state.notebooks[0].id : '');
+  const currentNb = state.notebooks.find((nb) => nb.id === note.notebookId) || state.notebooks[0];
+  if (currentNb) {
+    dom.currentNotebookName.textContent = currentNb.name;
+    dom.noteNotebookSelect.value = currentNb.id;
+  }
+
   dom.noteBody.value = note.body || '';
 
   dom.btnStarNote.classList.toggle('active', Boolean(note.isPinned));
@@ -359,7 +364,7 @@ function selectNote(noteId) {
     dom.btnDeleteNote.title = 'Delete Permanently';
   } else {
     dom.btnRestoreNote.style.display = 'none';
-    dom.btnDeleteNote.title = 'Delete';
+    dom.btnDeleteNote.title = 'Delete note';
   }
 
   renderActiveNoteTags(note);
@@ -367,6 +372,7 @@ function selectNote(noteId) {
   updateStats(note.body || '');
   renderOutline();
 
+  dom.noteHeaderDate.textContent = `Updated ${formatRelativeDate(note.updatedAt || note.createdAt)}`;
   dom.noteUpdatedTime.textContent = `${formatRelativeDate(note.updatedAt || note.createdAt)}`;
 }
 
@@ -417,6 +423,7 @@ function clearEditor() {
   dom.statsWords.textContent = '0 words';
   dom.statsReadtime.textContent = '0m';
   dom.noteUpdatedTime.textContent = '';
+  dom.noteHeaderDate.textContent = '';
   dom.outlineList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 4px;">No note selected</span>';
 }
 
@@ -546,11 +553,12 @@ function triggerAutoSave() {
 
     dom.saveStatus.textContent = 'Saved';
     dom.noteUpdatedTime.textContent = 'Just now';
+    dom.noteHeaderDate.textContent = 'Updated just now';
     renderNotebooks();
     renderTagsCloud();
     renderNotesList();
     renderOutline();
-  }, 350);
+  }, 300);
 }
 
 function updatePreviewFromMarkdown() {
@@ -832,7 +840,16 @@ function setupEventListeners() {
   dom.btnRestoreNote.addEventListener('click', restoreCurrentNote);
 
   dom.noteTitle.addEventListener('input', triggerAutoSave);
-  dom.noteNotebookSelect.addEventListener('change', triggerAutoSave);
+
+  dom.noteNotebookSelect.addEventListener('change', () => {
+    const current = state.notes.find((n) => n.id === state.selectedNoteId);
+    if (current) {
+      current.notebookId = dom.noteNotebookSelect.value;
+      const nb = state.notebooks.find((n) => n.id === current.notebookId);
+      if (nb) dom.currentNotebookName.textContent = nb.name;
+    }
+    triggerAutoSave();
+  });
 
   dom.noteBody.addEventListener('input', () => {
     if (state.isSyncing) return;
