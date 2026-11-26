@@ -12,6 +12,9 @@ const state = {
   sortBy: 'updated',
   viewMode: 'split',
   outlineOpen: false,
+  outlineTab: 'headings',
+  expandedNotebooks: new Set(),
+  expandedNotes: new Set(),
   autoSaveTimer: null,
   isSyncing: false
 };
@@ -76,6 +79,19 @@ const dom = {
   outlineDrawer: document.getElementById('outline-drawer'),
   outlineList: document.getElementById('outline-list'),
   btnCloseOutline: document.getElementById('btn-close-outline'),
+  btnTabHeadings: document.getElementById('btn-tab-headings'),
+  btnTabBacklinks: document.getElementById('btn-tab-backlinks'),
+  backlinksCount: document.getElementById('backlinks-count'),
+  backlinksList: document.getElementById('backlinks-list'),
+
+  btnUploadPhoto: document.getElementById('btn-upload-photo'),
+  btnInsertRef: document.getElementById('btn-insert-ref'),
+
+  referenceModal: document.getElementById('reference-modal'),
+  referenceSearchInput: document.getElementById('reference-search-input'),
+  referenceTreeList: document.getElementById('reference-tree-list'),
+  referenceCloseBtn: document.getElementById('reference-close-btn'),
+  referenceCancelBtn: document.getElementById('reference-cancel-btn'),
 
   saveStatus: document.getElementById('save-status'),
   noteUpdatedTime: document.getElementById('note-updated-time'),
@@ -138,6 +154,20 @@ async function init() {
   }
 }
 
+function extractHeadings(markdownText) {
+  if (!markdownText) return [];
+  const headingRegex = /^(#{1,3})\s+(.+)$/gm;
+  const list = [];
+  let match;
+  while ((match = headingRegex.exec(markdownText)) !== null) {
+    list.push({
+      level: match[1].length,
+      text: match[2].trim()
+    });
+  }
+  return list;
+}
+
 function renderNotebooks() {
   const active = state.notes.filter((n) => !n.isTrash);
   const starred = active.filter((n) => n.isPinned);
@@ -151,22 +181,140 @@ function renderNotebooks() {
   dom.noteNotebookSelect.innerHTML = '';
 
   state.notebooks.forEach((nb) => {
-    const count = active.filter((n) => n.notebookId === nb.id).length;
+    const nbNotes = active.filter((n) => n.notebookId === nb.id);
+    const count = nbNotes.length;
+    const isExpanded = state.expandedNotebooks.has(nb.id);
+    const isCur = state.activeView === `notebook:${nb.id}`;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'notebook-tree-node';
 
     const item = document.createElement('div');
-    const isCur = state.activeView === `notebook:${nb.id}`;
     item.className = `notebook-item ${isCur ? 'active' : ''}`;
     item.setAttribute('data-id', nb.id);
-    item.innerHTML = `
-      <span class="item-name">${escapeHtml(nb.name)}</span>
-      <span class="item-count">${count}</span>
-    `;
+
+    const expander = document.createElement('span');
+    expander.className = `tree-expander ${isExpanded ? 'expanded' : ''}`;
+    expander.textContent = '▶';
+    expander.title = isExpanded ? 'Collapse' : 'Expand';
+    expander.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.expandedNotebooks.has(nb.id)) {
+        state.expandedNotebooks.delete(nb.id);
+      } else {
+        state.expandedNotebooks.add(nb.id);
+      }
+      renderNotebooks();
+    });
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'item-name';
+    nameSpan.textContent = nb.name;
+
+    const countSpan = document.createElement('span');
+    countSpan.className = 'item-count';
+    countSpan.textContent = count;
+
+    item.appendChild(expander);
+    item.appendChild(nameSpan);
+    item.appendChild(countSpan);
 
     item.addEventListener('click', () => {
       setActiveView(`notebook:${nb.id}`);
     });
 
-    dom.notebooksList.appendChild(item);
+    wrapper.appendChild(item);
+
+    // Child notes container for tree view
+    if (isExpanded && nbNotes.length > 0) {
+      const notesContainer = document.createElement('div');
+      notesContainer.className = 'tree-notes-container';
+
+      nbNotes.forEach((note) => {
+        const isNoteExpanded = state.expandedNotes.has(note.id);
+        const headings = extractHeadings(note.body);
+        const isCurNote = note.id === state.selectedNoteId;
+
+        const noteRow = document.createElement('div');
+        noteRow.className = `tree-note-item ${isCurNote ? 'active' : ''}`;
+
+        if (headings.length > 0) {
+          const noteExpander = document.createElement('span');
+          noteExpander.className = `tree-expander ${isNoteExpanded ? 'expanded' : ''}`;
+          noteExpander.textContent = '▶';
+          noteExpander.title = isNoteExpanded ? 'Collapse sections' : 'Expand sections';
+          noteExpander.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (state.expandedNotes.has(note.id)) {
+              state.expandedNotes.delete(note.id);
+            } else {
+              state.expandedNotes.add(note.id);
+            }
+            renderNotebooks();
+          });
+          noteRow.appendChild(noteExpander);
+        } else {
+          const placeholder = document.createElement('span');
+          placeholder.style.width = '16px';
+          placeholder.style.display = 'inline-block';
+          placeholder.style.marginRight = '2px';
+          placeholder.style.flexShrink = '0';
+          noteRow.appendChild(placeholder);
+        }
+
+        const noteTitleSpan = document.createElement('span');
+        noteTitleSpan.className = 'tree-note-title';
+        noteTitleSpan.textContent = note.title || 'Untitled Note';
+        noteRow.appendChild(noteTitleSpan);
+
+        noteRow.addEventListener('click', () => {
+          selectNote(note.id);
+        });
+
+        notesContainer.appendChild(noteRow);
+
+        // Sections inside note
+        if (isNoteExpanded && headings.length > 0) {
+          const sectionsContainer = document.createElement('div');
+          sectionsContainer.className = 'tree-sections-container';
+
+          headings.forEach((h) => {
+            const secRow = document.createElement('div');
+            secRow.className = `tree-section-item level-${h.level}`;
+
+            const secText = document.createElement('span');
+            secText.className = 'tree-section-text';
+            secText.textContent = `${'#'.repeat(h.level)} ${h.text}`;
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'tree-copy-btn';
+            copyBtn.textContent = '🔗';
+            copyBtn.title = `Reference section: [[${note.title}#${h.text}]]`;
+            copyBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const ref = `[[${note.title}#${h.text}]]`;
+              insertAtCursor(ref);
+            });
+
+            secRow.appendChild(secText);
+            secRow.appendChild(copyBtn);
+
+            secRow.addEventListener('click', (e) => {
+              e.stopPropagation();
+              navigateToSection(note.title, h.text);
+            });
+
+            sectionsContainer.appendChild(secRow);
+          });
+
+          notesContainer.appendChild(sectionsContainer);
+        }
+      });
+
+      wrapper.appendChild(notesContainer);
+    }
+
+    dom.notebooksList.appendChild(wrapper);
 
     const opt = document.createElement('option');
     opt.value = nb.id;
@@ -371,6 +519,7 @@ function selectNote(noteId) {
   updatePreviewFromMarkdown();
   updateStats(note.body || '');
   renderOutline();
+  renderBacklinks();
 
   dom.noteHeaderDate.textContent = `Updated ${formatRelativeDate(note.updatedAt || note.createdAt)}`;
   dom.noteUpdatedTime.textContent = `${formatRelativeDate(note.updatedAt || note.createdAt)}`;
@@ -613,7 +762,24 @@ function htmlToMarkdown(html) {
       case 'ul': case 'ol': return `\n${children}\n`;
       case 'p': return `${children.trim()}\n\n`;
       case 'br': return '\n';
-      case 'a': return `[${children}](${node.getAttribute('href') || ''})`;
+      case 'img': {
+        const alt = node.getAttribute('alt') || 'Photo';
+        const src = node.getAttribute('src') || '';
+        return `![${alt}](${src})`;
+      }
+      case 'a': {
+        if (node.classList && node.classList.contains('note-ref-link')) {
+          const note = node.getAttribute('data-note') || '';
+          const section = node.getAttribute('data-section') || '';
+          const label = (node.querySelector('.ref-label') ? node.querySelector('.ref-label').textContent : children).trim();
+          const defaultLabel = section ? `${note} › ${section}` : note;
+          if (label && label !== defaultLabel && label !== note) {
+            return `[[${note}${section ? '#' + section : ''}|${label}]]`;
+          }
+          return `[[${note}${section ? '#' + section : ''}]]`;
+        }
+        return `[${children}](${node.getAttribute('href') || ''})`;
+      }
       default: return children;
     }
   }
@@ -643,16 +809,279 @@ function renderOutline() {
   if (count === 0) {
     dom.outlineList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 4px;">No headings</span>';
   }
+
+  renderBacklinks();
+}
+
+function renderBacklinks() {
+  const cur = state.notes.find((n) => n.id === state.selectedNoteId);
+  if (!cur) {
+    dom.backlinksList.innerHTML = '';
+    dom.backlinksCount.textContent = '0';
+    return;
+  }
+
+  const curTitle = (cur.title || '').toLowerCase().trim();
+  const backlinks = [];
+
+  state.notes.forEach((other) => {
+    if (other.id === cur.id || other.isTrash) return;
+    const body = other.body || '';
+
+    const refRegex = new RegExp(`\\[\\[\\s*${escapeRegex(curTitle)}(?:#([^\\]|]+))?(?:\\|([^\\]]+))?\\]\\]`, 'i');
+    const match = refRegex.exec(body);
+    if (match) {
+      backlinks.push({
+        note: other,
+        section: match[1] || null
+      });
+    }
+  });
+
+  dom.backlinksCount.textContent = backlinks.length;
+  dom.backlinksList.innerHTML = '';
+
+  if (backlinks.length === 0) {
+    dom.backlinksList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 4px;">No notes reference this note yet.</span>';
+    return;
+  }
+
+  backlinks.forEach(({ note, section }) => {
+    const card = document.createElement('div');
+    card.className = 'backlink-card';
+    card.innerHTML = `
+      <div class="backlink-card-title">${escapeHtml(note.title)}</div>
+      <div class="backlink-card-match">References: ${section ? 'part #' + escapeHtml(section) : 'Entire note'}</div>
+    `;
+    card.addEventListener('click', () => {
+      selectNote(note.id);
+    });
+    dom.backlinksList.appendChild(card);
+  });
 }
 
 function scrollToHeading(text) {
-  const headings = dom.notePreviewContent.querySelectorAll('h1, h2, h3');
+  scrollToHeadingWithHighlight(text);
+}
+
+function scrollToHeadingWithHighlight(text) {
+  if (!text) return;
+  const cleanTarget = text.toLowerCase().replace(/#/g, '').trim();
+  const headings = dom.notePreviewContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
   for (const h of headings) {
-    if (h.textContent.trim() === text) {
+    const hText = h.textContent.toLowerCase().trim();
+    if (hText === cleanTarget || hText.includes(cleanTarget) || cleanTarget.includes(hText)) {
       h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      h.classList.add('section-highlight');
+      setTimeout(() => h.classList.remove('section-highlight'), 2200);
       break;
     }
   }
+
+  const body = dom.noteBody.value;
+  const regex = new RegExp(`^#{1,6}\\s+.*${escapeRegex(cleanTarget)}.*$`, 'im');
+  const match = regex.exec(body);
+  if (match) {
+    dom.noteBody.focus();
+    dom.noteBody.setSelectionRange(match.index, match.index + match[0].length);
+  }
+}
+
+function navigateToSection(targetNoteTitle, sectionHeading) {
+  const target = state.notes.find((n) =>
+    n.id === targetNoteTitle ||
+    (n.title && n.title.toLowerCase().trim() === targetNoteTitle.toLowerCase().trim())
+  );
+
+  if (!target) {
+    alert(`Referenced note "${targetNoteTitle}" was not found.`);
+    return;
+  }
+
+  selectNote(target.id);
+
+  if (sectionHeading) {
+    setTimeout(() => {
+      scrollToHeadingWithHighlight(sectionHeading);
+    }, 120);
+  }
+}
+
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function uploadPhotoFromMac() {
+  try {
+    const res = await window.notedAPI.pickImage();
+    if (!res || res.canceled) return;
+    insertAtCursor(`\n${res.markdown}\n`);
+  } catch (err) {
+    console.error('Failed to pick photo:', err);
+  }
+}
+
+function insertAtCursor(textToInsert) {
+  const isVisual = document.activeElement === dom.notePreviewContent || dom.notePreviewContent.contains(document.activeElement);
+
+  if (isVisual) {
+    document.execCommand('insertHTML', false, marked.parse(textToInsert));
+    updateMarkdownFromVisual();
+  } else {
+    const ta = dom.noteBody;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const full = ta.value;
+    ta.value = full.substring(0, start) + textToInsert + full.substring(end);
+    ta.focus();
+    ta.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
+    updatePreviewFromMarkdown();
+    updateStats(ta.value);
+    triggerAutoSave();
+  }
+}
+
+function openReferencePicker() {
+  dom.referenceModal.style.display = 'flex';
+  dom.referenceSearchInput.value = '';
+  renderReferenceTree('');
+  setTimeout(() => dom.referenceSearchInput.focus(), 50);
+}
+
+function renderReferenceTree(query) {
+  dom.referenceTreeList.innerHTML = '';
+  const q = (query || '').toLowerCase().trim();
+  const activeNotes = state.notes.filter((n) => !n.isTrash);
+
+  state.notebooks.forEach((nb) => {
+    const nbNotes = activeNotes.filter((n) => n.notebookId === nb.id);
+    const matchingNotes = [];
+
+    nbNotes.forEach((note) => {
+      const headings = extractHeadings(note.body);
+      const titleMatches = (note.title || '').toLowerCase().includes(q);
+      const matchingHeadings = headings.filter((h) => h.text.toLowerCase().includes(q));
+
+      if (!q || titleMatches || matchingHeadings.length > 0) {
+        matchingNotes.push({
+          note,
+          headings: q && !titleMatches ? matchingHeadings : headings
+        });
+      }
+    });
+
+    if (matchingNotes.length === 0) return;
+
+    const group = document.createElement('div');
+    group.className = 'ref-picker-group';
+
+    const groupTitle = document.createElement('div');
+    groupTitle.className = 'ref-picker-group-title';
+    groupTitle.textContent = nb.name;
+    group.appendChild(groupTitle);
+
+    matchingNotes.forEach(({ note, headings }) => {
+      const noteItem = document.createElement('div');
+      noteItem.className = 'ref-picker-note';
+      noteItem.innerHTML = `
+        <span>📄 ${escapeHtml(note.title || 'Untitled')}</span>
+        <span class="ref-picker-badge">Note</span>
+      `;
+      noteItem.addEventListener('click', () => {
+        insertAtCursor(`[[${note.title || 'Untitled'}]]`);
+        dom.referenceModal.style.display = 'none';
+      });
+      group.appendChild(noteItem);
+
+      if (headings.length > 0) {
+        const secContainer = document.createElement('div');
+        secContainer.className = 'ref-picker-sections';
+
+        headings.forEach((h) => {
+          const secItem = document.createElement('div');
+          secItem.className = 'ref-picker-section-item';
+          secItem.innerHTML = `
+            <span># ${escapeHtml(h.text)}</span>
+            <span class="ref-picker-badge">H${h.level} Part</span>
+          `;
+          secItem.addEventListener('click', (e) => {
+            e.stopPropagation();
+            insertAtCursor(`[[${note.title}#${h.text}]]`);
+            dom.referenceModal.style.display = 'none';
+          });
+          secContainer.appendChild(secItem);
+        });
+
+        group.appendChild(secContainer);
+      }
+    });
+
+    dom.referenceTreeList.appendChild(group);
+  });
+
+  if (dom.referenceTreeList.children.length === 0) {
+    dom.referenceTreeList.innerHTML = '<div style="padding: 12px; font-size: 11.5px; color: var(--text-muted); text-align: center;">No matching notes or sections found.</div>';
+  }
+}
+
+function setupDragAndDrop() {
+  const dropTargets = [dom.noteBody, dom.notePreviewContent];
+
+  dropTargets.forEach((target) => {
+    target.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    target.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const files = e.dataTransfer.files;
+      if (!files || files.length === 0) return;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target.result;
+            const md = `\n![${file.name || 'Photo'}](${dataUrl})\n`;
+            insertAtCursor(md);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+  });
+}
+
+function setupPasteImage() {
+  const pasteTargets = [dom.noteBody, dom.notePreviewContent];
+
+  pasteTargets.forEach((target) => {
+    target.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type && item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target.result;
+            const md = `\n![Pasted Photo](${dataUrl})\n`;
+            insertAtCursor(md);
+          };
+          reader.readAsDataURL(blob);
+          e.preventDefault();
+          break;
+        }
+      }
+    });
+  });
 }
 
 function updateStats(text) {
@@ -734,6 +1163,12 @@ function applyToolbarAction(action) {
       replacement = `\n---\n`;
       cursorOffset = replacement.length;
       break;
+    case 'photo':
+      uploadPhotoFromMac();
+      return;
+    case 'reference':
+      openReferencePicker();
+      return;
     default:
       return;
   }
@@ -882,10 +1317,68 @@ function setupEventListeners() {
   dom.btnViewSplit.addEventListener('click', () => setViewMode('split'));
   dom.btnViewPreview.addEventListener('click', () => setViewMode('preview'));
 
+  setupDragAndDrop();
+  setupPasteImage();
+
+  dom.notePreviewContent.addEventListener('click', (e) => {
+    const refLink = e.target.closest('.note-ref-link');
+    if (refLink) {
+      e.preventDefault();
+      e.stopPropagation();
+      const note = refLink.getAttribute('data-note');
+      const section = refLink.getAttribute('data-section');
+      if (note) {
+        navigateToSection(note, section);
+      }
+    }
+  });
+
+  dom.btnTabHeadings.addEventListener('click', () => {
+    state.outlineTab = 'headings';
+    dom.btnTabHeadings.classList.add('active');
+    dom.btnTabBacklinks.classList.remove('active');
+    dom.outlineList.style.display = 'block';
+    dom.backlinksList.style.display = 'none';
+    renderOutline();
+  });
+
+  dom.btnTabBacklinks.addEventListener('click', () => {
+    state.outlineTab = 'backlinks';
+    dom.btnTabBacklinks.classList.add('active');
+    dom.btnTabHeadings.classList.remove('active');
+    dom.outlineList.style.display = 'none';
+    dom.backlinksList.style.display = 'flex';
+    renderBacklinks();
+  });
+
+  dom.referenceSearchInput.addEventListener('input', (e) => {
+    renderReferenceTree(e.target.value);
+  });
+  dom.referenceCloseBtn.addEventListener('click', () => {
+    dom.referenceModal.style.display = 'none';
+  });
+  dom.referenceCancelBtn.addEventListener('click', () => {
+    dom.referenceModal.style.display = 'none';
+  });
+  dom.referenceModal.addEventListener('click', (e) => {
+    if (e.target === dom.referenceModal) {
+      dom.referenceModal.style.display = 'none';
+    }
+  });
+
+  dom.btnUploadPhoto.addEventListener('click', uploadPhotoFromMac);
+  dom.btnInsertRef.addEventListener('click', openReferencePicker);
+
   dom.btnToggleOutline.addEventListener('click', () => {
     state.outlineOpen = !state.outlineOpen;
     dom.outlineDrawer.style.display = state.outlineOpen ? 'flex' : 'none';
-    if (state.outlineOpen) renderOutline();
+    if (state.outlineOpen) {
+      if (state.outlineTab === 'backlinks') {
+        renderBacklinks();
+      } else {
+        renderOutline();
+      }
+    }
   });
 
   dom.btnCloseOutline.addEventListener('click', () => {
@@ -920,7 +1413,15 @@ function setupEventListeners() {
     if (action) applyToolbarAction(action);
   });
 
-  dom.btnOpenGuide.addEventListener('click', () => dom.guideModal.style.display = 'flex');
+  dom.btnOpenGuide.addEventListener('click', () => {
+    // If Markdown Guide note exists, navigate to it or open modal
+    const guideNote = state.notes.find((n) => n.id === 'note-markdown-guide' || (n.title || '').includes('Markdown Guide'));
+    if (guideNote) {
+      selectNote(guideNote.id);
+    } else {
+      dom.guideModal.style.display = 'flex';
+    }
+  });
   dom.guideCloseBtn.addEventListener('click', () => dom.guideModal.style.display = 'none');
   dom.guideOkBtn.addEventListener('click', () => dom.guideModal.style.display = 'none');
 
@@ -956,6 +1457,12 @@ function setupEventListeners() {
     } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'o') {
       e.preventDefault();
       dom.btnToggleOutline.click();
+    } else if (isCmdOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openReferencePicker();
+    } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'i') {
+      e.preventDefault();
+      uploadPhotoFromMac();
     } else if (isCmdOrCtrl && e.key === '1') {
       e.preventDefault();
       setViewMode('edit');
@@ -973,6 +1480,9 @@ function setupEventListeners() {
       dom.shortcutsModal.style.display = 'none';
       dom.notebookModal.style.display = 'none';
       dom.exportMenu.style.display = 'none';
+      dom.referenceModal.style.display = 'none';
+    }
+  });
     }
   });
 }

@@ -44,6 +44,72 @@ Local-first desktop workspace notes, design decisions, and sprint milestones.
       tags: ['dev', 'roadmap'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
+    },
+    {
+      id: 'note-markdown-guide',
+      notebookId: 'nb-personal',
+      title: 'Markdown Guide & Reference',
+      body: `# Markdown Guide & Reference #guide #reference
+
+Comprehensive guide to Markdown formatting, Tree References, and Photos in Noted.
+
+### Text Formatting
+- **Bold text** with \`**bold**\`
+- *Italic text* with \`*italic*\`
+- ~~Strikethrough~~ with \`~~text~~\`
+- \`Inline code\` with backticks
+- > Blockquotes with \`> quote\`
+
+### Headings & Tree Outlines
+Headings create a tree outline for quick navigation:
+# Heading 1
+## Heading 2
+### Heading 3
+
+### Referencing Other Notes & Sections
+You can reference any note or a specific part/heading of another note:
+- **Full Note Reference**: [[Product Roadmap & Architecture]]
+- **Section / Part Reference**: [[Product Roadmap & Architecture#Current Priorities]]
+- **Custom Label Reference**: [[Product Roadmap & Architecture#System Shortcuts|View Shortcuts]]
+
+Clicking any reference link instantly opens that note and smoothly scrolls to that exact section!
+Use the **Reference** button in the toolbar to pick any note or section from the tree.
+
+### Uploading Photos from Mac
+- **Toolbar**: Click the 📷 **Photo** button to select any image from your Mac.
+- **Drag & Drop**: Drag an image file from Finder and drop it directly into the editor.
+- **Paste Screenshot**: Press \`⌘V\` to paste a copied screenshot or photo.
+Markdown format:
+\`\`\`markdown
+![Photo Description](path-or-data-uri)
+\`\`\`
+
+### Interactive Task Checklists
+- [x] Download Noted
+- [x] Read this Markdown guide
+- [ ] Upload a photo from Mac
+- [ ] Create a section reference link
+
+### Tables & Code Blocks
+| Feature | Syntax | Description |
+| :--- | :---: | :--- |
+| Section Link | \`[[Note#Heading]]\` | Links to a specific part |
+| Photo Upload | \`![Alt](url)\` | Upload from Mac |
+| Checklists | \`- [ ]\` | Interactive tasks |
+
+\`\`\`javascript
+function calculateScore(items) {
+  return items.filter(i => i.done).length;
+}
+\`\`\`
+
+---
+*Tip: Click the Outline button or expand notebooks in the sidebar tree to see heading hierarchies!*`,
+      isPinned: true,
+      isTrash: false,
+      tags: ['guide', 'reference'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
   ]
 };
@@ -116,6 +182,11 @@ class Store {
 
       if (notes.length === 0) {
         notes = INITIAL_DATA.notes;
+      } else {
+        const hasGuide = notes.some((n) => n.id === 'note-markdown-guide' || n.title.includes('Markdown Guide'));
+        if (!hasGuide) {
+          notes.push(INITIAL_DATA.notes[1]);
+        }
       }
 
       const sanitizedData = {

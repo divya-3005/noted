@@ -26,6 +26,7 @@ assert.strictEqual(Array.isArray(initialData.notebooks), true, 'Notebooks should
 assert.strictEqual(Array.isArray(initialData.notes), true, 'Notes should be an array');
 assert.strictEqual(initialData.notebooks.length >= 3, true, 'Should have at least 3 starter notebooks');
 assert.strictEqual(initialData.notes.length >= 1, true, 'Should have starter notes');
+assert.strictEqual(initialData.notes.some(n => n.id === 'note-markdown-guide' || n.title.includes('Markdown Guide')), true, 'Markdown Guide note must be present');
 assert.strictEqual(typeof initialData.settings, 'object', 'Settings should be present');
 console.log('✅ Test 1 Passed: Initial data loaded correctly');
 

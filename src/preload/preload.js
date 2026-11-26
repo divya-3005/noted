@@ -36,5 +36,9 @@ contextBridge.exposeInMainWorld('notedAPI', {
 
   // Multi-format export (Markdown, HTML, Plain Text)
   exportNote: (note, format = 'md', htmlContent = '') =>
-    ipcRenderer.invoke('notes:export', { note, format, htmlContent })
+    ipcRenderer.invoke('notes:export', { note, format, htmlContent }),
+
+  // Photo / Image uploads
+  pickImage: () => ipcRenderer.invoke('images:pick-and-upload'),
+  saveImage: (payload) => ipcRenderer.invoke('images:save-data', payload)
 });

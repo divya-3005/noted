@@ -95,6 +95,84 @@ function setupIpcHandlers() {
     return store.saveSettings(settings);
   });
 
+  // Pick and upload image from Mac
+  ipcMain.handle('images:pick-and-upload', async () => {
+    if (!mainWindow) return { canceled: true };
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Select Photo from Mac',
+      buttonLabel: 'Insert Photo',
+      properties: ['openFile'],
+      filters: [
+        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic', 'tiff', 'bmp'] }
+      ]
+    });
+
+    if (canceled || !filePaths || filePaths.length === 0) {
+      return { canceled: true };
+    }
+
+    const sourcePath = filePaths[0];
+    const ext = path.extname(sourcePath).toLowerCase();
+    const fileName = path.basename(sourcePath);
+
+    const attachmentsDir = path.join(app.getPath('userData'), 'attachments');
+    if (!fs.existsSync(attachmentsDir)) {
+      fs.mkdirSync(attachmentsDir, { recursive: true });
+    }
+
+    const uniqueName = `img_${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const destPath = path.join(attachmentsDir, uniqueName);
+    fs.copyFileSync(sourcePath, destPath);
+
+    const fileBuffer = fs.readFileSync(sourcePath);
+    const mimeMap = {
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp',
+      '.svg': 'image/svg+xml',
+      '.bmp': 'image/bmp'
+    };
+    const mime = mimeMap[ext] || 'image/png';
+    const dataUrl = `data:${mime};base64,${fileBuffer.toString('base64')}`;
+
+    return {
+      canceled: false,
+      fileName,
+      filePath: destPath,
+      dataUrl,
+      markdown: `![${path.parse(fileName).name}](${dataUrl})`
+    };
+  });
+
+  // Save image data from paste or drag-and-drop
+  ipcMain.handle('images:save-data', async (_event, { base64Data, mimeType, name }) => {
+    try {
+      const attachmentsDir = path.join(app.getPath('userData'), 'attachments');
+      if (!fs.existsSync(attachmentsDir)) {
+        fs.mkdirSync(attachmentsDir, { recursive: true });
+      }
+      const ext = mimeType === 'image/jpeg' ? '.jpg' : mimeType === 'image/gif' ? '.gif' : '.png';
+      const fileName = `img_${Date.now()}${ext}`;
+      const destPath = path.join(attachmentsDir, fileName);
+      const buffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(destPath, buffer);
+
+      const dataUrl = `data:${mimeType || 'image/png'};base64,${base64Data}`;
+      return {
+        success: true,
+        fileName,
+        filePath: destPath,
+        dataUrl,
+        markdown: `![${name || 'Photo'}](${dataUrl})`
+      };
+    } catch (err) {
+      console.error('Failed to save image:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
   // Multi-format export (Markdown, HTML, Plain Text)
   ipcMain.handle('notes:export', async (_event, { note, format = 'md', htmlContent = '' }) => {
     if (!mainWindow) return { success: false };
