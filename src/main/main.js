@@ -18,7 +18,7 @@ function createWindow() {
     title: 'Noted',
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#ffffff',
-    show: false,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,
@@ -26,17 +26,25 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-
   mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
     console.log(`[Renderer] ${message} (${sourceId}:${line})`);
   });
 
+  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+
+  mainWindow.show();
+  mainWindow.focus();
+  if (process.platform === 'darwin') {
+    if (app.dock) app.dock.show();
+    app.focus({ steal: true });
+  }
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
-    if (process.platform === 'darwin' && app.dock) {
-      app.dock.show();
+    if (process.platform === 'darwin') {
+      if (app.dock) app.dock.show();
+      app.focus({ steal: true });
     }
   });
 

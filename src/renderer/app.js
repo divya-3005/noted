@@ -1,3 +1,199 @@
+// Browser fallback for standalone / web preview
+if (typeof window !== 'undefined' && !window.notedAPI) {
+  const STORAGE_KEY = 'noted_browser_data';
+  function getStorageData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return {
+      settings: { theme: 'light', sortBy: 'updated', focusMode: false },
+      notebooks: [
+        { id: 'nb-eng', name: 'Engineering', createdAt: new Date().toISOString() },
+        { id: 'nb-personal', name: 'Personal', createdAt: new Date().toISOString() },
+        { id: 'nb-archive', name: 'Archive', createdAt: new Date().toISOString() }
+      ],
+      notes: [
+        {
+          id: 'note-roadmap',
+          notebookId: 'nb-eng',
+          title: 'Product Roadmap & Architecture',
+          body: '# Product Roadmap & Architecture #dev #roadmap\n\nLocal-first desktop workspace notes, design decisions, and sprint milestones.\n\n### Current Priorities\n- [x] High-performance Markdown rendering pipeline\n- [x] Dynamic tag indexing and real-time filtering\n- [x] Document outline tree navigation\n- [ ] Multi-window workspace support\n\n### Architecture Principles\n- **Local Persistence**: State serializes atomically.\n- **Instant Search**: In-memory inverted index across note titles, tags, and document bodies.\n\n### System Shortcuts\n- `⌘N` New note\n- `⌘F` Search notes & tags\n- `⌘⇧F` Zen focus mode\n- `⌘⇧P` Pin note to top\n- `⌘1 / ⌘2 / ⌘3` Switch between Edit, Split, and Preview',
+          isPinned: true,
+          isTrash: false,
+          tags: ['dev', 'roadmap'],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'note-markdown-guide',
+          notebookId: 'nb-personal',
+          title: 'Markdown Guide & Section Referencing',
+          body: '# Markdown Guide & Section Referencing #guide #docs\n\nWelcome to Noted! This guide explains all formatting, cross-note referencing, and photo uploading features.\n\n### Headings & Structure\nUse `#` through `######` for headers. Every heading appears in the **Outline drawer** and sidebar tree.\n\n### Tree Section Referencing\nYou can reference other notes or specific sections using WikiLinks:\n- Link to an entire note: `[[Product Roadmap & Architecture]]`\n- Link to a specific heading: `[[Product Roadmap & Architecture#Architecture Principles]]`\n- Link with custom label: `[[Product Roadmap & Architecture#Architecture Principles|Read Principles]]`\n\n### Uploading Photos\n- Click the **📷 Photo** button in the toolbar.\n- Or drag and drop any image directly from Finder.\n- Or press `⌘V` to paste screenshots from clipboard.',
+          isPinned: true,
+          isTrash: false,
+          tags: ['guide', 'docs'],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ]
+    };
+  }
+
+  function setStorageData(d) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+    } catch (_) {}
+  }
+
+  window.notedAPI = {
+    loadData: async () => getStorageData(),
+    saveNote: async (noteData) => {
+      const data = getStorageData();
+      let note = data.notes.find((n) => n.id === noteData.id);
+      const now = new Date().toISOString();
+      if (note) {
+        Object.assign(note, noteData, { updatedAt: now });
+      } else {
+        note = {
+          id: noteData.id || `note-${Date.now()}`,
+          ...noteData,
+          createdAt: now,
+          updatedAt: now,
+          isPinned: false,
+          isTrash: false
+        };
+        data.notes.unshift(note);
+      }
+      setStorageData(data);
+      return note;
+    },
+    togglePin: async (id) => {
+      const data = getStorageData();
+      const n = data.notes.find((note) => note.id === id);
+      if (n) {
+        n.isPinned = !n.isPinned;
+        n.updatedAt = new Date().toISOString();
+        setStorageData(data);
+        return n;
+      }
+      return null;
+    },
+    duplicate: async (id) => {
+      const data = getStorageData();
+      const orig = data.notes.find((note) => note.id === id);
+      if (!orig) return null;
+      const dup = {
+        ...orig,
+        id: `note-${Date.now()}`,
+        title: `${orig.title || 'Untitled'} (Copy)`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      data.notes.unshift(dup);
+      setStorageData(data);
+      return dup;
+    },
+    deleteNote: async ({ noteId, permanent }) => {
+      const data = getStorageData();
+      if (permanent) {
+        data.notes = data.notes.filter((n) => n.id !== noteId);
+      } else {
+        const n = data.notes.find((note) => note.id === noteId);
+        if (n) {
+          n.isTrash = true;
+          n.updatedAt = new Date().toISOString();
+        }
+      }
+      setStorageData(data);
+      return { success: true };
+    },
+    restore: async (id) => {
+      const data = getStorageData();
+      const n = data.notes.find((note) => note.id === id);
+      if (n) {
+        n.isTrash = false;
+        n.updatedAt = new Date().toISOString();
+        setStorageData(data);
+        return n;
+      }
+      return null;
+    },
+    emptyTrash: async () => {
+      const data = getStorageData();
+      data.notes = data.notes.filter((n) => !n.isTrash);
+      setStorageData(data);
+      return { success: true };
+    },
+    createNotebook: async (name) => {
+      const data = getStorageData();
+      const nb = { id: `nb-${Date.now()}`, name, createdAt: new Date().toISOString() };
+      data.notebooks.push(nb);
+      setStorageData(data);
+      return nb;
+    },
+    renameNotebook: async ({ id, name }) => {
+      const data = getStorageData();
+      const nb = data.notebooks.find((n) => n.id === id);
+      if (nb) {
+        nb.name = name;
+        setStorageData(data);
+      }
+      return nb;
+    },
+    deleteNotebook: async (id) => {
+      const data = getStorageData();
+      data.notebooks = data.notebooks.filter((n) => n.id !== id);
+      setStorageData(data);
+      return { success: true };
+    },
+    saveSettings: async (settings) => {
+      const data = getStorageData();
+      data.settings = { ...data.settings, ...settings };
+      setStorageData(data);
+      return data.settings;
+    },
+    exportNote: async ({ note, format }) => {
+      const blob = new Blob([note.body || ''], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${note.title || 'note'}.${format || 'md'}`;
+      a.click();
+      return { success: true };
+    },
+    pickImage: async () => {
+      return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return resolve({ canceled: true });
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const dataUrl = ev.target.result;
+            resolve({
+              canceled: false,
+              fileName: file.name,
+              dataUrl,
+              markdown: `![${file.name.replace(/\.[^/.]+$/, '')}](${dataUrl})`
+            });
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      });
+    },
+    saveImage: async ({ base64Data, mimeType, name }) => {
+      return {
+        dataUrl: `data:${mimeType || 'image/png'};base64,${base64Data}`,
+        markdown: `![${name || 'Image'}](data:${mimeType || 'image/png'};base64,${base64Data})`
+      };
+    }
+  };
+}
+
 const state = {
   notebooks: [],
   notes: [],
