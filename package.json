@@ -1,7 +1,7 @@
 {
   "name": "noted",
   "version": "1.0.0",
-  "description": "A simple, beginner-friendly Markdown note-taking desktop app built with Electron, inspired by Joplin.",
+  "description": "A fast, elegant, local-first Markdown workspace engineered for focused thinking and writing.",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
