@@ -1,10 +1,3 @@
-/**
- * app.js - Frontend application controller for Noted
- */
-
-// ============================================================================
-// 1. STATE MANAGEMENT
-// ============================================================================
 const state = {
   notebooks: [],
   notes: [],
@@ -14,18 +7,15 @@ const state = {
     focusMode: false
   },
   selectedNoteId: null,
-  activeView: 'all', // 'all', 'starred', 'trash', 'notebook:<id>', or 'tag:<name>'
+  activeView: 'all',
   searchQuery: '',
   sortBy: 'updated',
-  viewMode: 'split', // 'edit', 'split', 'preview'
+  viewMode: 'split',
   outlineOpen: false,
   autoSaveTimer: null,
   isSyncing: false
 };
 
-// ============================================================================
-// 2. DOM ELEMENT REFERENCES
-// ============================================================================
 const dom = {
   appLayout: document.getElementById('app-layout'),
   sidebar: document.getElementById('sidebar'),
@@ -42,12 +32,10 @@ const dom = {
   notebooksList: document.getElementById('notebooks-list'),
   btnAddNotebook: document.getElementById('btn-add-notebook'),
   btnThemeToggle: document.getElementById('btn-theme-toggle'),
-  themeIcon: document.getElementById('theme-icon'),
   themeLabel: document.getElementById('theme-label'),
   btnShortcutsModal: document.getElementById('btn-shortcuts-modal'),
   btnToggleFocus: document.getElementById('btn-toggle-focus'),
 
-  // Notes Column
   activeViewTitle: document.getElementById('active-view-title'),
   notesBadge: document.getElementById('notes-badge'),
   sortSelect: document.getElementById('sort-select'),
@@ -58,7 +46,6 @@ const dom = {
   emptyStateText: document.getElementById('empty-state-text'),
   btnEmptyCreate: document.getElementById('btn-empty-create'),
 
-  // Editor Column
   btnStarNote: document.getElementById('btn-star-note'),
   noteTitle: document.getElementById('note-title'),
   noteNotebookSelect: document.getElementById('note-notebook-select'),
@@ -72,12 +59,10 @@ const dom = {
   btnRestoreNote: document.getElementById('btn-restore-note'),
   btnDeleteNote: document.getElementById('btn-delete-note'),
 
-  // Tags Bar
   noteTagsBar: document.getElementById('note-tags-bar'),
   activeNoteTags: document.getElementById('active-note-tags'),
   addTagInput: document.getElementById('add-tag-input'),
 
-  // Toolbar & Panes
   editorToolbar: document.getElementById('editor-toolbar'),
   btnOpenGuide: document.getElementById('btn-open-guide'),
   editorWorkspace: document.getElementById('editor-workspace'),
@@ -86,19 +71,16 @@ const dom = {
   noteBody: document.getElementById('note-body'),
   notePreviewContent: document.getElementById('note-preview-content'),
 
-  // Outline Drawer
   outlineDrawer: document.getElementById('outline-drawer'),
   outlineList: document.getElementById('outline-list'),
   btnCloseOutline: document.getElementById('btn-close-outline'),
 
-  // Status Bar
   saveStatus: document.getElementById('save-status'),
   noteUpdatedTime: document.getElementById('note-updated-time'),
   noteStatsBtn: document.getElementById('note-stats-btn'),
   statsWords: document.getElementById('stats-words'),
   statsReadtime: document.getElementById('stats-readtime'),
 
-  // Modals
   notebookModal: document.getElementById('notebook-modal'),
   modalTitle: document.getElementById('modal-title'),
   modalInput: document.getElementById('modal-input'),
@@ -122,9 +104,6 @@ const dom = {
   shortcutsOkBtn: document.getElementById('shortcuts-ok-btn')
 };
 
-// ============================================================================
-// 3. INITIALIZATION
-// ============================================================================
 async function init() {
   try {
     const data = await window.notedAPI.loadData();
@@ -146,45 +125,39 @@ async function init() {
     renderTagsCloud();
     renderNotesList();
 
-    const initialNote = getFilteredNotes()[0];
-    if (initialNote) {
-      selectNote(initialNote.id);
+    const initial = getFilteredNotes()[0];
+    if (initial) {
+      selectNote(initial.id);
     } else {
       clearEditor();
     }
   } catch (err) {
-    console.error('Initialization error:', err);
+    console.error('Init error:', err);
   }
 }
 
-// ============================================================================
-// 4. RENDERING: SIDEBAR & NOTEBOOKS
-// ============================================================================
 function renderNotebooks() {
-  // Update counts
-  const nonTrashNotes = state.notes.filter((n) => !n.isTrash);
-  const starredNotes = nonTrashNotes.filter((n) => n.isPinned);
-  const trashNotes = state.notes.filter((n) => n.isTrash);
+  const active = state.notes.filter((n) => !n.isTrash);
+  const starred = active.filter((n) => n.isPinned);
+  const trash = state.notes.filter((n) => n.isTrash);
 
-  dom.countAll.textContent = nonTrashNotes.length;
-  dom.countStarred.textContent = starredNotes.length;
-  dom.countTrash.textContent = trashNotes.length;
+  dom.countAll.textContent = active.length;
+  dom.countStarred.textContent = starred.length;
+  dom.countTrash.textContent = trash.length;
 
   dom.notebooksList.innerHTML = '';
   dom.noteNotebookSelect.innerHTML = '';
 
   state.notebooks.forEach((nb) => {
-    const nbNotes = nonTrashNotes.filter((n) => n.notebookId === nb.id);
+    const count = active.filter((n) => n.notebookId === nb.id).length;
 
-    // Sidebar item
     const item = document.createElement('div');
-    const isActive = state.activeView === `notebook:${nb.id}`;
-    item.className = `notebook-item ${isActive ? 'active' : ''}`;
+    const isCur = state.activeView === `notebook:${nb.id}`;
+    item.className = `notebook-item ${isCur ? 'active' : ''}`;
     item.setAttribute('data-id', nb.id);
     item.innerHTML = `
-      <span class="item-icon">📁</span>
       <span class="item-name">${escapeHtml(nb.name)}</span>
-      <span class="item-count">${nbNotes.length}</span>
+      <span class="item-count">${count}</span>
     `;
 
     item.addEventListener('click', () => {
@@ -193,19 +166,18 @@ function renderNotebooks() {
 
     dom.notebooksList.appendChild(item);
 
-    // Editor select option
-    const option = document.createElement('option');
-    option.value = nb.id;
-    option.textContent = nb.name;
-    dom.noteNotebookSelect.appendChild(option);
+    const opt = document.createElement('option');
+    opt.value = nb.id;
+    opt.textContent = nb.name;
+    dom.noteNotebookSelect.appendChild(opt);
   });
 }
 
 function renderTagsCloud() {
-  const nonTrashNotes = state.notes.filter((n) => !n.isTrash);
+  const active = state.notes.filter((n) => !n.isTrash);
   const tagCounts = {};
 
-  nonTrashNotes.forEach((note) => {
+  active.forEach((note) => {
     (note.tags || []).forEach((t) => {
       const clean = t.toLowerCase().trim();
       if (clean) tagCounts[clean] = (tagCounts[clean] || 0) + 1;
@@ -217,15 +189,15 @@ function renderTagsCloud() {
   dom.tagsList.innerHTML = '';
 
   if (tags.length === 0) {
-    dom.tagsList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 4px;">No tags yet</span>';
+    dom.tagsList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 2px 4px;">No tags</span>';
     return;
   }
 
   tags.forEach((tag) => {
     const chip = document.createElement('div');
-    const isActive = state.activeView === `tag:${tag}`;
-    chip.className = `tag-chip ${isActive ? 'active' : ''}`;
-    chip.innerHTML = `#${escapeHtml(tag)} <span style="opacity: 0.7; font-size: 9.5px;">${tagCounts[tag]}</span>`;
+    const isCur = state.activeView === `tag:${tag}`;
+    chip.className = `tag-chip ${isCur ? 'active' : ''}`;
+    chip.innerHTML = `#${escapeHtml(tag)} <span style="opacity: 0.6; font-size: 9.5px; margin-left: 3px;">${tagCounts[tag]}</span>`;
     chip.addEventListener('click', () => {
       setActiveView(`tag:${tag}`);
     });
@@ -236,7 +208,6 @@ function renderTagsCloud() {
 function setActiveView(view) {
   state.activeView = view;
 
-  // Clear nav item highlights
   dom.navAll.classList.toggle('active', view === 'all');
   dom.navStarred.classList.toggle('active', view === 'starred');
   dom.navTrash.classList.toggle('active', view === 'trash');
@@ -245,7 +216,6 @@ function setActiveView(view) {
   renderTagsCloud();
   renderNotesList();
 
-  // If active note is not in view, select the first available note
   const visible = getFilteredNotes();
   if (visible.length > 0 && (!state.selectedNoteId || !visible.some((n) => n.id === state.selectedNoteId))) {
     selectNote(visible[0].id);
@@ -254,9 +224,6 @@ function setActiveView(view) {
   }
 }
 
-// ============================================================================
-// 5. RENDERING: NOTES LIST
-// ============================================================================
 function getFilteredNotes() {
   let list = [];
 
@@ -276,7 +243,6 @@ function getFilteredNotes() {
     }
   }
 
-  // Apply search query
   if (state.searchQuery) {
     const q = state.searchQuery.toLowerCase();
     list = list.filter((n) =>
@@ -286,9 +252,7 @@ function getFilteredNotes() {
     );
   }
 
-  // Sort notes
   list.sort((a, b) => {
-    // Pinned notes float to top unless in trash
     if (state.activeView !== 'trash') {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
@@ -309,10 +273,9 @@ function getFilteredNotes() {
 function renderNotesList() {
   const filtered = getFilteredNotes();
 
-  // Update header title
   let title = 'All Notes';
-  if (state.activeView === 'starred') title = '⭐ Starred';
-  else if (state.activeView === 'trash') title = '🗑️ Trash';
+  if (state.activeView === 'starred') title = 'Starred';
+  else if (state.activeView === 'trash') title = 'Trash';
   else if (state.activeView.startsWith('notebook:')) {
     const nb = state.notebooks.find((n) => n.id === state.activeView.replace('notebook:', ''));
     title = nb ? nb.name : 'Notebook';
@@ -321,11 +284,11 @@ function renderNotesList() {
   }
 
   if (state.searchQuery) {
-    title = `Search: "${state.searchQuery}"`;
+    title = `"${state.searchQuery}"`;
   }
 
   dom.activeViewTitle.textContent = title;
-  dom.notesBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'note' : 'notes'}`;
+  dom.notesBadge.textContent = `${filtered.length}`;
   dom.btnEmptyTrash.style.display = state.activeView === 'trash' && filtered.length > 0 ? 'inline-block' : 'none';
 
   if (filtered.length === 0) {
@@ -342,8 +305,8 @@ function renderNotesList() {
 
   filtered.forEach((note) => {
     const card = document.createElement('div');
-    const isActive = note.id === state.selectedNoteId;
-    card.className = `note-card ${isActive ? 'active' : ''}`;
+    const isCur = note.id === state.selectedNoteId;
+    card.className = `note-card ${isCur ? 'active' : ''}`;
     card.setAttribute('data-id', note.id);
 
     const cleanSnippet = (note.body || '')
@@ -353,17 +316,16 @@ function renderNotesList() {
 
     const words = (note.body || '').trim().split(/\s+/).filter(Boolean).length;
     const readTime = Math.max(1, Math.ceil(words / 200));
-
     const tagsHtml = (note.tags || []).slice(0, 3).map((t) => `<span class="tag-pill">#${escapeHtml(t)}</span>`).join('');
 
     card.innerHTML = `
       <div class="note-card-header">
-        <span class="note-card-title">${escapeHtml(note.title || 'Untitled Note')}</span>
-        ${note.isPinned ? '<span class="star-badge" title="Starred">★</span>' : ''}
+        <span class="note-card-title">${escapeHtml(note.title || 'Untitled')}</span>
+        ${note.isPinned ? '<span class="star-badge">★</span>' : ''}
       </div>
       <div class="note-card-snippet">${escapeHtml(cleanSnippet)}</div>
       <div class="note-card-footer">
-        <span>${formatRelativeDate(note.updatedAt || note.createdAt)} · ${readTime}m</span>
+        <span>${formatRelativeDate(note.updatedAt || note.createdAt)}</span>
         <div class="note-card-tags">${tagsHtml}</div>
       </div>
     `;
@@ -373,9 +335,6 @@ function renderNotesList() {
   });
 }
 
-// ============================================================================
-// 6. EDITOR & NOTE MANAGEMENT
-// ============================================================================
 function selectNote(noteId) {
   state.selectedNoteId = noteId;
   const note = state.notes.find((n) => n.id === noteId);
@@ -385,7 +344,6 @@ function selectNote(noteId) {
     return;
   }
 
-  // Highlight card
   document.querySelectorAll('.note-card').forEach((c) => {
     c.classList.toggle('active', c.getAttribute('data-id') === noteId);
   });
@@ -394,17 +352,14 @@ function selectNote(noteId) {
   dom.noteNotebookSelect.value = note.notebookId || (state.notebooks[0] ? state.notebooks[0].id : '');
   dom.noteBody.value = note.body || '';
 
-  // Star state
-  dom.btnStarNote.textContent = note.isPinned ? '★' : '☆';
   dom.btnStarNote.classList.toggle('active', Boolean(note.isPinned));
 
-  // Trash view buttons
   if (note.isTrash) {
     dom.btnRestoreNote.style.display = 'inline-flex';
     dom.btnDeleteNote.title = 'Delete Permanently';
   } else {
     dom.btnRestoreNote.style.display = 'none';
-    dom.btnDeleteNote.title = 'Move to Trash';
+    dom.btnDeleteNote.title = 'Delete';
   }
 
   renderActiveNoteTags(note);
@@ -412,7 +367,7 @@ function selectNote(noteId) {
   updateStats(note.body || '');
   renderOutline();
 
-  dom.noteUpdatedTime.textContent = `Updated ${formatRelativeDate(note.updatedAt || note.createdAt)}`;
+  dom.noteUpdatedTime.textContent = `${formatRelativeDate(note.updatedAt || note.createdAt)}`;
 }
 
 function renderActiveNoteTags(note) {
@@ -420,7 +375,7 @@ function renderActiveNoteTags(note) {
   (note.tags || []).forEach((t) => {
     const pill = document.createElement('span');
     pill.className = 'tag-remove-pill';
-    pill.innerHTML = `#${escapeHtml(t)} <span class="remove-x" title="Remove tag">✕</span>`;
+    pill.innerHTML = `#${escapeHtml(t)} <span class="remove-x" title="Remove">✕</span>`;
     pill.querySelector('.remove-x').addEventListener('click', (e) => {
       e.stopPropagation();
       removeTagFromNote(note, t);
@@ -430,15 +385,15 @@ function renderActiveNoteTags(note) {
 }
 
 function addTagToCurrentNote(tagText) {
-  const current = state.notes.find((n) => n.id === state.selectedNoteId);
-  if (!current) return;
+  const cur = state.notes.find((n) => n.id === state.selectedNoteId);
+  if (!cur) return;
   const clean = tagText.replace(/^#/, '').trim().toLowerCase();
   if (!clean) return;
 
-  if (!current.tags) current.tags = [];
-  if (!current.tags.includes(clean)) {
-    current.tags.push(clean);
-    renderActiveNoteTags(current);
+  if (!cur.tags) cur.tags = [];
+  if (!cur.tags.includes(clean)) {
+    cur.tags.push(clean);
+    renderActiveNoteTags(cur);
     renderTagsCloud();
     renderNotesList();
     triggerAutoSave();
@@ -460,28 +415,27 @@ function clearEditor() {
   dom.notePreviewContent.innerHTML = '';
   dom.activeNoteTags.innerHTML = '';
   dom.statsWords.textContent = '0 words';
-  dom.statsReadtime.textContent = '0m read';
-  dom.noteUpdatedTime.textContent = 'No note selected';
-  dom.outlineList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 8px;">No note selected</span>';
+  dom.statsReadtime.textContent = '0m';
+  dom.noteUpdatedTime.textContent = '';
+  dom.outlineList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 4px;">No note selected</span>';
 }
 
 async function createNewNote() {
-  let targetNotebookId = state.notebooks[0] ? state.notebooks[0].id : 'default';
+  let targetNb = state.notebooks[0] ? state.notebooks[0].id : 'default';
   if (state.activeView.startsWith('notebook:')) {
-    targetNotebookId = state.activeView.replace('notebook:', '');
+    targetNb = state.activeView.replace('notebook:', '');
   }
 
-  const initialTags = state.activeView.startsWith('tag:') ? [state.activeView.replace('tag:', '')] : [];
+  const tags = state.activeView.startsWith('tag:') ? [state.activeView.replace('tag:', '')] : [];
 
-  const newNoteData = {
+  const created = await window.notedAPI.saveNote({
     title: 'Untitled Note',
     body: '',
-    notebookId: targetNotebookId,
-    tags: initialTags,
+    notebookId: targetNb,
+    tags,
     isPinned: false
-  };
+  });
 
-  const created = await window.notedAPI.saveNote(newNoteData);
   state.notes.unshift(created);
 
   if (state.activeView === 'trash') {
@@ -514,7 +468,6 @@ async function togglePinCurrentNote() {
     const idx = state.notes.findIndex((n) => n.id === updated.id);
     if (idx !== -1) state.notes[idx] = updated;
 
-    dom.btnStarNote.textContent = updated.isPinned ? '★' : '☆';
     dom.btnStarNote.classList.toggle('active', Boolean(updated.isPinned));
     renderNotebooks();
     renderNotesList();
@@ -527,7 +480,7 @@ async function deleteCurrentNote() {
   if (!note) return;
 
   if (note.isTrash) {
-    if (!confirm('Permanently delete this note? This cannot be undone.')) return;
+    if (!confirm('Permanently delete note?')) return;
     await window.notedAPI.deleteNote(note.id, true);
     state.notes = state.notes.filter((n) => n.id !== note.id);
   } else {
@@ -540,9 +493,9 @@ async function deleteCurrentNote() {
   renderTagsCloud();
   renderNotesList();
 
-  const nextNotes = getFilteredNotes();
-  if (nextNotes.length > 0) {
-    selectNote(nextNotes[0].id);
+  const next = getFilteredNotes();
+  if (next.length > 0) {
+    selectNote(next[0].id);
   } else {
     clearEditor();
   }
@@ -562,7 +515,7 @@ async function restoreCurrentNote() {
 }
 
 async function emptyTrash() {
-  if (!confirm('Empty all notes in Trash? This will permanently delete them.')) return;
+  if (!confirm('Empty all notes in Trash?')) return;
   await window.notedAPI.emptyTrash();
   state.notes = state.notes.filter((n) => !n.isTrash);
   renderNotebooks();
@@ -570,12 +523,9 @@ async function emptyTrash() {
   clearEditor();
 }
 
-// ============================================================================
-// 7. AUTO-SAVE & PREVIEW SYNC
-// ============================================================================
 function triggerAutoSave() {
   if (!state.selectedNoteId) return;
-  dom.saveStatus.textContent = 'Saving...';
+  dom.saveStatus.textContent = 'Saving';
 
   clearTimeout(state.autoSaveTimer);
   state.autoSaveTimer = setTimeout(async () => {
@@ -594,13 +544,13 @@ function triggerAutoSave() {
     const idx = state.notes.findIndex((n) => n.id === saved.id);
     if (idx !== -1) state.notes[idx] = saved;
 
-    dom.saveStatus.textContent = 'All changes saved';
-    dom.noteUpdatedTime.textContent = `Updated just now`;
+    dom.saveStatus.textContent = 'Saved';
+    dom.noteUpdatedTime.textContent = 'Just now';
     renderNotebooks();
     renderTagsCloud();
     renderNotesList();
     renderOutline();
-  }, 400);
+  }, 350);
 }
 
 function updatePreviewFromMarkdown() {
@@ -663,9 +613,6 @@ function htmlToMarkdown(html) {
   return Array.from(temp.childNodes).map(parseNode).join('').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-// ============================================================================
-// 8. OUTLINE / TABLE OF CONTENTS
-// ============================================================================
 function renderOutline() {
   const content = dom.noteBody.value || '';
   const headingRegex = /^(#{1,3})\s+(.+)$/gm;
@@ -686,24 +633,20 @@ function renderOutline() {
   }
 
   if (count === 0) {
-    dom.outlineList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 8px;">No headings in this note</span>';
+    dom.outlineList.innerHTML = '<span style="font-size: 11px; color: var(--text-muted); padding: 4px;">No headings</span>';
   }
 }
 
-function scrollToHeading(headingText) {
-  // Scroll preview pane to matching heading
+function scrollToHeading(text) {
   const headings = dom.notePreviewContent.querySelectorAll('h1, h2, h3');
   for (const h of headings) {
-    if (h.textContent.trim() === headingText) {
+    if (h.textContent.trim() === text) {
       h.scrollIntoView({ behavior: 'smooth', block: 'start' });
       break;
     }
   }
 }
 
-// ============================================================================
-// 9. STATS & ANALYTICS
-// ============================================================================
 function updateStats(text) {
   const clean = (text || '').trim();
   const words = clean ? clean.split(/\s+/).filter(Boolean).length : 0;
@@ -711,83 +654,72 @@ function updateStats(text) {
   const paras = clean ? clean.split(/\n\s*\n/).filter(Boolean).length : 0;
   const readTime = Math.max(1, Math.ceil(words / 200));
 
-  dom.statsWords.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+  dom.statsWords.textContent = `${words} words`;
   dom.statsReadtime.textContent = `${readTime}m read`;
 
   dom.detailWords.textContent = words.toLocaleString();
   dom.detailChars.textContent = chars.toLocaleString();
   dom.detailParas.textContent = paras.toLocaleString();
-  dom.detailReadtime.textContent = `${readTime} min`;
+  dom.detailReadtime.textContent = `${readTime}m`;
 }
 
-// ============================================================================
-// 10. TOOLBAR FORMATTING ACTIONS
-// ============================================================================
 function applyToolbarAction(action) {
   const textarea = dom.noteBody;
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
-  const fullText = textarea.value;
-  const selected = fullText.substring(start, end);
+  const full = textarea.value;
+  const sel = full.substring(start, end);
 
   let replacement = '';
   let cursorOffset = 0;
 
   switch (action) {
     case 'bold':
-      replacement = `**${selected || 'bold text'}**`;
-      cursorOffset = selected ? replacement.length : 2;
+      replacement = `**${sel || 'text'}**`;
+      cursorOffset = sel ? replacement.length : 2;
       break;
     case 'italic':
-      replacement = `*${selected || 'italic text'}*`;
-      cursorOffset = selected ? replacement.length : 1;
+      replacement = `*${sel || 'text'}*`;
+      cursorOffset = sel ? replacement.length : 1;
       break;
     case 'strike':
-      replacement = `~~${selected || 'strikethrough text'}~~`;
-      cursorOffset = selected ? replacement.length : 2;
+      replacement = `~~${sel || 'text'}~~`;
+      cursorOffset = sel ? replacement.length : 2;
       break;
     case 'h1':
-      replacement = `\n# ${selected || 'Heading 1'}\n`;
+      replacement = `\n# ${sel || 'Heading 1'}\n`;
       cursorOffset = replacement.length;
       break;
     case 'h2':
-      replacement = `\n## ${selected || 'Heading 2'}\n`;
+      replacement = `\n## ${sel || 'Heading 2'}\n`;
       cursorOffset = replacement.length;
       break;
     case 'h3':
-      replacement = `\n### ${selected || 'Heading 3'}\n`;
+      replacement = `\n### ${sel || 'Heading 3'}\n`;
       cursorOffset = replacement.length;
       break;
     case 'ul':
-      replacement = `\n- ${selected || 'List item'}\n`;
-      cursorOffset = replacement.length;
-      break;
-    case 'ol':
-      replacement = `\n1. ${selected || 'Numbered item'}\n`;
+      replacement = `\n- ${sel || 'Item'}\n`;
       cursorOffset = replacement.length;
       break;
     case 'task':
-      replacement = `\n- [ ] ${selected || 'New task'}\n`;
+      replacement = `\n- [ ] ${sel || 'Task'}\n`;
       cursorOffset = replacement.length;
       break;
     case 'quote':
-      replacement = `\n> ${selected || 'Quote text'}\n`;
+      replacement = `\n> ${sel || 'Quote'}\n`;
       cursorOffset = replacement.length;
       break;
     case 'code':
-      if (selected.includes('\n')) {
-        replacement = `\n\`\`\`javascript\n${selected}\n\`\`\`\n`;
-      } else {
-        replacement = `\`${selected || 'code'}\``;
-      }
+      replacement = sel.includes('\n') ? `\n\`\`\`\n${sel}\n\`\`\`\n` : `\`${sel || 'code'}\``;
       cursorOffset = replacement.length;
       break;
     case 'table':
-      replacement = `\n| Column 1 | Column 2 | Column 3 |\n| :--- | :--- | :--- |\n| Item 1 | Details | Value |\n| Item 2 | Details | Value |\n`;
+      replacement = `\n| Column 1 | Column 2 |\n| :--- | :--- |\n| A | B |\n`;
       cursorOffset = replacement.length;
       break;
     case 'link':
-      replacement = `[${selected || 'link text'}](https://)`;
+      replacement = `[${sel || 'link'}](url)`;
       cursorOffset = replacement.length - 1;
       break;
     case 'hr':
@@ -798,7 +730,7 @@ function applyToolbarAction(action) {
       return;
   }
 
-  textarea.value = fullText.substring(0, start) + replacement + fullText.substring(end);
+  textarea.value = full.substring(0, start) + replacement + full.substring(end);
   textarea.focus();
   textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
 
@@ -807,20 +739,15 @@ function applyToolbarAction(action) {
   triggerAutoSave();
 }
 
-// ============================================================================
-// 11. THEME & FOCUS MODE
-// ============================================================================
 function applyTheme(theme) {
   state.settings.theme = theme;
   document.body.setAttribute('data-theme', theme);
-  dom.themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-  dom.themeLabel.textContent = theme === 'dark' ? 'Light Theme' : 'Dark Theme';
+  dom.themeLabel.textContent = theme === 'dark' ? 'Light' : 'Dark';
   window.notedAPI.saveSettings({ theme });
 }
 
 function toggleTheme() {
-  const next = state.settings.theme === 'dark' ? 'light' : 'dark';
-  applyTheme(next);
+  applyTheme(state.settings.theme === 'dark' ? 'light' : 'dark');
 }
 
 function toggleFocusMode() {
@@ -837,13 +764,10 @@ function setViewMode(mode) {
   dom.btnViewPreview.classList.toggle('active', mode === 'preview');
 }
 
-// ============================================================================
-// 12. EXPORT HANDLERS
-// ============================================================================
 async function handleExport(format) {
   dom.exportMenu.style.display = 'none';
-  const current = state.notes.find((n) => n.id === state.selectedNoteId);
-  if (!current) return;
+  const cur = state.notes.find((n) => n.id === state.selectedNoteId);
+  if (!cur) return;
 
   if (format === 'print') {
     window.print();
@@ -851,19 +775,14 @@ async function handleExport(format) {
   }
 
   const html = dom.notePreviewContent.innerHTML;
-  await window.notedAPI.exportNote(current, format, html);
+  await window.notedAPI.exportNote(cur, format, html);
 }
 
-// ============================================================================
-// 13. EVENT LISTENERS SETUP
-// ============================================================================
 function setupEventListeners() {
-  // Quick navigation
   dom.navAll.addEventListener('click', () => setActiveView('all'));
   dom.navStarred.addEventListener('click', () => setActiveView('starred'));
   dom.navTrash.addEventListener('click', () => setActiveView('trash'));
 
-  // Notebook creation
   dom.btnAddNotebook.addEventListener('click', () => {
     dom.modalTitle.textContent = 'New Notebook';
     dom.modalInput.value = '';
@@ -885,7 +804,6 @@ function setupEventListeners() {
     setActiveView(`notebook:${created.id}`);
   });
 
-  // Search
   dom.searchInput.addEventListener('input', (e) => {
     state.searchQuery = e.target.value.trim();
     dom.searchClearBtn.style.display = state.searchQuery ? 'block' : 'none';
@@ -899,14 +817,12 @@ function setupEventListeners() {
     renderNotesList();
   });
 
-  // Sort dropdown
   dom.sortSelect.addEventListener('change', (e) => {
     state.sortBy = e.target.value;
     renderNotesList();
     window.notedAPI.saveSettings({ sortBy: state.sortBy });
   });
 
-  // Notes action buttons
   dom.btnNewNote.addEventListener('click', createNewNote);
   dom.btnEmptyCreate.addEventListener('click', createNewNote);
   dom.btnEmptyTrash.addEventListener('click', emptyTrash);
@@ -915,7 +831,6 @@ function setupEventListeners() {
   dom.btnDeleteNote.addEventListener('click', deleteCurrentNote);
   dom.btnRestoreNote.addEventListener('click', restoreCurrentNote);
 
-  // Editor typing
   dom.noteTitle.addEventListener('input', triggerAutoSave);
   dom.noteNotebookSelect.addEventListener('change', triggerAutoSave);
 
@@ -931,7 +846,6 @@ function setupEventListeners() {
     updateMarkdownFromVisual();
   });
 
-  // Checkbox toggles in visual editor
   dom.notePreviewContent.addEventListener('change', (e) => {
     if (e.target && e.target.type === 'checkbox') {
       const li = e.target.closest('.task-item');
@@ -940,7 +854,6 @@ function setupEventListeners() {
     }
   });
 
-  // Tag addition
   dom.addTagInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       addTagToCurrentNote(dom.addTagInput.value);
@@ -948,12 +861,10 @@ function setupEventListeners() {
     }
   });
 
-  // View modes
   dom.btnViewEdit.addEventListener('click', () => setViewMode('edit'));
   dom.btnViewSplit.addEventListener('click', () => setViewMode('split'));
   dom.btnViewPreview.addEventListener('click', () => setViewMode('preview'));
 
-  // Outline Drawer
   dom.btnToggleOutline.addEventListener('click', () => {
     state.outlineOpen = !state.outlineOpen;
     dom.outlineDrawer.style.display = state.outlineOpen ? 'flex' : 'none';
@@ -965,11 +876,9 @@ function setupEventListeners() {
     dom.outlineDrawer.style.display = 'none';
   });
 
-  // Theme & Focus
   dom.btnThemeToggle.addEventListener('click', toggleTheme);
   dom.btnToggleFocus.addEventListener('click', toggleFocusMode);
 
-  // Export dropdown
   dom.btnExportDropdown.addEventListener('click', (e) => {
     e.stopPropagation();
     const isShown = dom.exportMenu.style.display === 'block';
@@ -987,7 +896,6 @@ function setupEventListeners() {
     });
   });
 
-  // Formatting toolbar
   dom.editorToolbar.addEventListener('click', (e) => {
     const btn = e.target.closest('.tool-btn');
     if (!btn || btn.id === 'btn-open-guide') return;
@@ -995,7 +903,6 @@ function setupEventListeners() {
     if (action) applyToolbarAction(action);
   });
 
-  // Modals
   dom.btnOpenGuide.addEventListener('click', () => dom.guideModal.style.display = 'flex');
   dom.guideCloseBtn.addEventListener('click', () => dom.guideModal.style.display = 'none');
   dom.guideOkBtn.addEventListener('click', () => dom.guideModal.style.display = 'none');
@@ -1008,38 +915,37 @@ function setupEventListeners() {
   dom.shortcutsCloseBtn.addEventListener('click', () => dom.shortcutsModal.style.display = 'none');
   dom.shortcutsOkBtn.addEventListener('click', () => dom.shortcutsModal.style.display = 'none');
 
-  // Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
-    const isMetaOrCtrl = e.metaKey || e.ctrlKey;
+    const isCmdOrCtrl = e.metaKey || e.ctrlKey;
 
-    if (isMetaOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'n') {
+    if (isCmdOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'n') {
       e.preventDefault();
       createNewNote();
-    } else if (isMetaOrCtrl && e.shiftKey && e.key.toLowerCase() === 'n') {
+    } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'n') {
       e.preventDefault();
       dom.btnAddNotebook.click();
-    } else if (isMetaOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'f') {
+    } else if (isCmdOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'f') {
       e.preventDefault();
       dom.searchInput.focus();
-    } else if (isMetaOrCtrl && e.shiftKey && e.key.toLowerCase() === 'f') {
+    } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'f') {
       e.preventDefault();
       toggleFocusMode();
-    } else if (isMetaOrCtrl && e.shiftKey && e.key.toLowerCase() === 'p') {
+    } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'p') {
       e.preventDefault();
       togglePinCurrentNote();
-    } else if (isMetaOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'd') {
+    } else if (isCmdOrCtrl && !e.shiftKey && e.key.toLowerCase() === 'd') {
       e.preventDefault();
       duplicateCurrentNote();
-    } else if (isMetaOrCtrl && e.shiftKey && e.key.toLowerCase() === 'o') {
+    } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'o') {
       e.preventDefault();
       dom.btnToggleOutline.click();
-    } else if (isMetaOrCtrl && e.key === '1') {
+    } else if (isCmdOrCtrl && e.key === '1') {
       e.preventDefault();
       setViewMode('edit');
-    } else if (isMetaOrCtrl && e.key === '2') {
+    } else if (isCmdOrCtrl && e.key === '2') {
       e.preventDefault();
       setViewMode('split');
-    } else if (isMetaOrCtrl && e.key === '3') {
+    } else if (isCmdOrCtrl && e.key === '3') {
       e.preventDefault();
       setViewMode('preview');
     } else if (e.key === '?' && !['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) {
@@ -1054,9 +960,6 @@ function setupEventListeners() {
   });
 }
 
-// ============================================================================
-// 14. UTILITY FUNCTIONS
-// ============================================================================
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -1067,19 +970,19 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-function formatRelativeDate(isoDateString) {
-  if (!isoDateString) return 'recently';
-  const date = new Date(isoDateString);
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMin / 60);
-  const diffDays = Math.floor(diffHours / 24);
+function formatRelativeDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(m / 60);
+  const days = Math.floor(h / 24);
 
-  if (diffMin < 1) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (m < 1) return 'now';
+  if (m < 60) return `${m}m`;
+  if (h < 24) return `${h}h`;
+  if (days < 7) return `${days}d`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 document.addEventListener('DOMContentLoaded', init);

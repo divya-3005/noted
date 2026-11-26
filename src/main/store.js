@@ -1,7 +1,3 @@
-/**
- * store.js - Local-first JSON storage engine for Noted
- */
-
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -9,89 +5,47 @@ const crypto = require('crypto');
 const INITIAL_DATA = {
   settings: {
     theme: 'light',
-    sortBy: 'updated', // 'updated', 'created', 'title'
+    sortBy: 'updated',
     focusMode: false
   },
   notebooks: [
-    { id: 'nb-projects', name: 'Projects 🚀', createdAt: new Date().toISOString() },
-    { id: 'nb-personal', name: 'Personal 📓', createdAt: new Date().toISOString() },
-    { id: 'nb-reference', name: 'Reference & Docs 📚', createdAt: new Date().toISOString() }
+    { id: 'nb-notes', name: 'Notes', createdAt: new Date().toISOString() },
+    { id: 'nb-work', name: 'Work', createdAt: new Date().toISOString() },
+    { id: 'nb-reading', name: 'Reading', createdAt: new Date().toISOString() }
   ],
   notes: [
     {
       id: 'note-welcome',
-      notebookId: 'nb-personal',
-      title: 'Welcome to Noted 📓',
-      body: `# Welcome to Noted 📓
+      notebookId: 'nb-notes',
+      title: 'Welcome to Noted',
+      body: `# Welcome to Noted
 
-Noted is a fast, local-first Markdown workspace engineered for focused thinking and writing.
+A distraction-free, local Markdown editor built for fast daily writing.
 
-### ⚡ Highlights & Workflow
-- **Pins & Favorites**: Star critical notes to keep them pinned at the top.
-- **Dynamic Tags**: Use \`#tags\` anywhere in your text (e.g. #productivity, #roadmap, #ideas) to auto-categorize notes.
-- **Dual Live Sync**: Switch between Markdown view, Visual Text view, or Split mode.
-- **Table of Contents**: Automatic Outline generated from your headings for swift navigation.
-- **Trash & Recovery**: Soft-delete prevents accidental data loss; restore anytime.
-- **Dark & Light Mode**: Built-in sleek dark theme for late-night flow.
-- **Universal Export**: Export clean Markdown, standalone styled HTML, or plain text.
+### Getting started
+- **Create**: Hit \`⌘N\` to start a new note.
+- **Organize**: Tag notes anywhere using \`#tags\` like #ideas or #drafts.
+- **Navigate**: Click **Outline** in the top bar to jump across sections.
+- **Zen mode**: Press \`⌘⇧F\` to hide the sidebars and focus on writing.
 
----
+### Markdown syntax
+- Headings: \`#\`, \`##\`, \`###\`
+- Formatting: \`**bold**\`, \`*italic*\`, \`~~strike~~\`, \`\` \`code\` \`\`
+- Lists: \`- bullet\` or \`1. numbered\`
+- Checklists: \`- [ ] todo\` and \`- [x] done\`
+- Quotes: \`> blockquote\`
+- Dividers: \`---\`
 
-### ⌨️ Useful Keyboard Shortcuts
-- \`Cmd / Ctrl + N\`: New Note
-- \`Cmd / Ctrl + Shift + N\`: New Notebook
-- \`Cmd / Ctrl + F\`: Instant Search
-- \`Cmd / Ctrl + Shift + F\`: Zen / Focus Mode
-- \`Cmd / Ctrl + D\`: Duplicate Note
-- \`Cmd / Ctrl + 1 / 2 / 3\`: Toggle Edit, Split, Preview modes
-- \`?\`: Open Keyboard Shortcuts cheatsheet
-
-Enjoy your clean workspace.`,
+All notes are stored as plain JSON on your disk. No accounts, no cloud lock-in.`,
       isPinned: true,
       isTrash: false,
-      tags: ['productivity', 'guide'],
+      tags: ['guide', 'notes'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'note-architecture',
-      notebookId: 'nb-projects',
-      title: 'Product Architecture & Roadmap #architecture #roadmap',
-      body: `# Product Architecture & Roadmap #architecture #roadmap
-
-Overview of core system decisions and upcoming development milestones.
-
-## 1. Local-First Principles
-- Zero network reliance for reading or writing notes.
-- Direct JSON persistence with atomic disk writes.
-- Plain text portability via standard Markdown specifications.
-
-## 2. Core Pillars
-| Pillar | Focus | Target |
-| :--- | :--- | :--- |
-| **Speed** | Instant startup & instant search | < 100ms |
-| **Privacy** | 100% on-device data storage | Local disk |
-| **Simplicity** | Clean 3-column layout | Minimalist |
-
-## 3. Implementation Checklist
-- [x] Local JSON storage engine
-- [x] Real-time two-way Markdown preview
-- [x] Tag extraction and sidebar filtering
-- [x] Document outline navigation
-- [ ] Cloud sync provider extensions`,
-      isPinned: false,
-      isTrash: false,
-      tags: ['architecture', 'roadmap'],
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      updatedAt: new Date(Date.now() - 1800000).toISOString()
     }
   ]
 };
 
-/**
- * Extracts hashtag words from Markdown text
- * Matches #word while avoiding headings (# Title)
- */
 function extractTags(text) {
   if (!text) return [];
   const tagRegex = /(?:^|\s)#([a-zA-Z0-9_\-]+)(?!\w)/g;
@@ -99,7 +53,6 @@ function extractTags(text) {
   let match;
   while ((match = tagRegex.exec(text)) !== null) {
     const candidate = match[1].toLowerCase();
-    // Exclude single numbers or hex color fragments
     if (!/^\d+$/.test(candidate)) {
       tags.add(candidate);
     }
@@ -119,9 +72,7 @@ class Store {
       if (app && app.getPath) {
         return path.join(app.getPath('userData'), 'noted-data.json');
       }
-    } catch {
-      // Fallback for tests or non-electron environments
-    }
+    } catch {}
     return path.join(process.cwd(), 'noted-data.json');
   }
 
@@ -149,7 +100,7 @@ class Store {
         notes
       };
     } catch (err) {
-      console.error('Error reading storage file, returning fallback:', err);
+      console.error('Storage read error, using fallback:', err);
       return JSON.parse(JSON.stringify(INITIAL_DATA));
     }
   }
@@ -164,7 +115,7 @@ class Store {
       fs.writeFileSync(targetPath, JSON.stringify(data, null, 2), 'utf8');
       return true;
     } catch (err) {
-      console.error('Failed to write storage file:', err);
+      console.error('Storage write error:', err);
       return false;
     }
   }
@@ -207,19 +158,19 @@ class Store {
       };
       this.save(data);
       return data.notes[index];
-    } else {
-      const newNote = {
-        ...noteData,
-        isPinned: Boolean(noteData.isPinned),
-        isTrash: Boolean(noteData.isTrash),
-        tags: mergedTags,
-        createdAt: noteData.createdAt || now,
-        updatedAt: now
-      };
-      data.notes.unshift(newNote);
-      this.save(data);
-      return newNote;
     }
+
+    const newNote = {
+      ...noteData,
+      isPinned: Boolean(noteData.isPinned),
+      isTrash: Boolean(noteData.isTrash),
+      tags: mergedTags,
+      createdAt: noteData.createdAt || now,
+      updatedAt: now
+    };
+    data.notes.unshift(newNote);
+    this.save(data);
+    return newNote;
   }
 
   togglePin(noteId) {
@@ -280,10 +231,10 @@ class Store {
 
   emptyTrash() {
     const data = this.load();
-    const countBefore = data.notes.length;
+    const before = data.notes.length;
     data.notes = data.notes.filter((n) => !n.isTrash);
     this.save(data);
-    return countBefore - data.notes.length;
+    return before - data.notes.length;
   }
 
   saveSettings(settings) {

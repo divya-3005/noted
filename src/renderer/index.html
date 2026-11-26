@@ -9,269 +9,216 @@
 </head>
 <body data-theme="light">
   <div class="app-layout" id="app-layout">
-    <!-- ==============================================
-         1. LEFT SIDEBAR: Navigation, Tags & Notebooks
-         ============================================== -->
+    <!-- Left Navigation -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="brand">
-          <span class="brand-icon">📓</span>
+          <svg class="brand-mark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           <span class="brand-name">Noted</span>
         </div>
-        <button id="btn-toggle-focus" class="icon-btn-subtle" title="Toggle Zen / Focus Mode (Cmd+Shift+F)">⛶</button>
+        <button id="btn-toggle-focus" class="icon-btn-subtle" title="Focus mode (⌘⇧F)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        </button>
       </div>
 
-      <!-- Quick Search Bar -->
       <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Search notes or #tags..." autocomplete="off" />
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="search-input" placeholder="Search" autocomplete="off" />
         <span class="search-shortcut">⌘F</span>
         <button id="search-clear-btn" class="icon-btn-subtle" title="Clear search" style="display: none;">✕</button>
       </div>
 
-      <!-- Quick Nav Sections -->
       <nav class="sidebar-nav">
         <div class="nav-group">
           <div class="nav-item active" data-view="all" id="nav-all">
-            <span class="item-icon">📂</span>
+            <span class="item-icon-svg">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </span>
             <span class="item-name">All Notes</span>
             <span class="item-count" id="count-all">0</span>
           </div>
           <div class="nav-item" data-view="starred" id="nav-starred">
-            <span class="item-icon">⭐</span>
+            <span class="item-icon-svg">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </span>
             <span class="item-name">Starred</span>
             <span class="item-count" id="count-starred">0</span>
           </div>
           <div class="nav-item" data-view="trash" id="nav-trash">
-            <span class="item-icon">🗑️</span>
+            <span class="item-icon-svg">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </span>
             <span class="item-name">Trash</span>
             <span class="item-count" id="count-trash">0</span>
           </div>
         </div>
 
-        <!-- Tags Cloud Section -->
         <div class="sidebar-section">
           <div class="sidebar-section-header">
             <span>TAGS</span>
             <span class="section-badge" id="tag-total-badge">0</span>
           </div>
-          <div id="tags-list" class="tags-list">
-            <!-- Dynamic tags rendered via JS -->
-          </div>
+          <div id="tags-list" class="tags-list"></div>
         </div>
 
-        <!-- Notebooks Section -->
         <div class="sidebar-section">
           <div class="sidebar-section-header">
             <span>NOTEBOOKS</span>
-            <button id="btn-add-notebook" class="icon-btn-small" title="Create Notebook">+</button>
+            <button id="btn-add-notebook" class="icon-btn-small" title="New notebook">+</button>
           </div>
-          <div id="notebooks-list" class="notebooks-list">
-            <!-- Dynamic notebooks rendered via JS -->
-          </div>
+          <div id="notebooks-list" class="notebooks-list"></div>
         </div>
       </nav>
 
-      <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <button id="btn-theme-toggle" class="sidebar-action-btn" title="Toggle Dark / Light Theme">
-          <span id="theme-icon">🌙</span>
-          <span id="theme-label">Dark Theme</span>
+        <button id="btn-theme-toggle" class="sidebar-action-btn" title="Toggle theme">
+          <svg class="theme-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <span id="theme-label">Theme</span>
         </button>
-        <button id="btn-shortcuts-modal" class="sidebar-action-btn-icon" title="Keyboard Shortcuts (?)">
-          ⌨️
+        <button id="btn-shortcuts-modal" class="sidebar-action-btn-icon" title="Shortcuts (?)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </button>
       </div>
     </aside>
 
-    <!-- ==============================================
-         2. MIDDLE COLUMN: Notes List
-         ============================================== -->
+    <!-- Notes List Column -->
     <section class="notes-column" id="notes-column">
       <div class="column-header">
         <div class="column-title-wrap">
           <h2 id="active-view-title">All Notes</h2>
-          <span class="notes-badge" id="notes-badge">0 notes</span>
+          <span class="notes-badge" id="notes-badge">0</span>
         </div>
         <div class="column-header-actions">
-          <select id="sort-select" class="sort-select" title="Sort Notes">
-            <option value="updated">Sort: Updated</option>
-            <option value="created">Sort: Created</option>
-            <option value="title">Sort: Title (A-Z)</option>
+          <select id="sort-select" class="sort-select" title="Sort order">
+            <option value="updated">Updated</option>
+            <option value="created">Created</option>
+            <option value="title">Title</option>
           </select>
-          <button id="btn-empty-trash" class="btn-danger-outline" style="display: none;" title="Permanently delete all notes in trash">
-            Empty Trash
-          </button>
-          <button id="btn-new-note" class="btn-primary" title="Create Note (Cmd+N)">
-            <span>+</span> Note
+          <button id="btn-empty-trash" class="btn-danger-outline" style="display: none;">Empty Trash</button>
+          <button id="btn-new-note" class="btn-primary" title="New note (⌘N)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>New Note</span>
           </button>
         </div>
       </div>
 
-      <!-- Scrollable list of notes -->
-      <div id="notes-list" class="notes-list">
-        <!-- Populated via app.js -->
-      </div>
+      <div id="notes-list" class="notes-list"></div>
 
-      <!-- Empty state when no notes exist or match search -->
       <div id="notes-empty-state" class="empty-state" style="display: none;">
-        <span class="empty-icon">📝</span>
         <p class="empty-text" id="empty-state-text">No notes found</p>
-        <button id="btn-empty-create" class="btn-secondary">Create a note</button>
+        <button id="btn-empty-create" class="btn-secondary">Create note</button>
       </div>
     </section>
 
-    <!-- ==============================================
-         3. RIGHT COLUMN: Markdown Editor & Preview
-         ============================================== -->
+    <!-- Editor Column -->
     <main class="editor-column" id="editor-column">
-      <!-- Editor Top Bar -->
       <div class="editor-header">
         <div class="editor-meta">
-          <button id="btn-star-note" class="icon-star-btn" title="Star / Pin Note (Cmd+Shift+P)">☆</button>
-          <input
-            type="text"
-            id="note-title"
-            class="note-title-input"
-            placeholder="Untitled Note..."
-            autocomplete="off"
-          />
+          <button id="btn-star-note" class="icon-star-btn" title="Star note (⌘⇧P)">
+            <svg class="star-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </button>
+          <input type="text" id="note-title" class="note-title-input" placeholder="Title" autocomplete="off" />
           <div class="notebook-selector-wrap">
-            <select id="note-notebook-select" class="notebook-select" title="Move to Notebook"></select>
+            <select id="note-notebook-select" class="notebook-select" title="Notebook"></select>
           </div>
         </div>
 
-        <!-- Right actions -->
         <div class="editor-actions">
-          <button id="btn-toggle-outline" class="btn-action" title="Toggle Table of Contents Outline">
-            <span>📑</span> Outline
+          <button id="btn-toggle-outline" class="btn-action" title="Outline (⌘⇧O)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            <span>Outline</span>
           </button>
 
           <div class="view-mode-group">
-            <button id="btn-view-edit" class="mode-btn" title="Editor only (Cmd+1)">Edit</button>
-            <button id="btn-view-split" class="mode-btn active" title="Split view (Cmd+2)">Split</button>
-            <button id="btn-view-preview" class="mode-btn" title="Preview only (Cmd+3)">Preview</button>
+            <button id="btn-view-edit" class="mode-btn" title="Editor (⌘1)">Edit</button>
+            <button id="btn-view-split" class="mode-btn active" title="Split (⌘2)">Split</button>
+            <button id="btn-view-preview" class="mode-btn" title="Preview (⌘3)">Preview</button>
           </div>
 
           <div class="divider-v"></div>
 
           <div class="dropdown-wrap">
-            <button id="btn-export-dropdown" class="btn-action" title="Export Note Options">
-              <span>📤</span> Export ▾
+            <button id="btn-export-dropdown" class="btn-action" title="Export">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Export</span>
             </button>
             <div id="export-menu" class="dropdown-menu" style="display: none;">
-              <button class="dropdown-item" data-export="md">📄 Markdown (.md)</button>
-              <button class="dropdown-item" data-export="html">🌐 Styled HTML (.html)</button>
-              <button class="dropdown-item" data-export="txt">📝 Plain Text (.txt)</button>
-              <button class="dropdown-item" data-export="print">🖨️ Print / Save as PDF</button>
+              <button class="dropdown-item" data-export="md">Markdown (.md)</button>
+              <button class="dropdown-item" data-export="html">HTML (.html)</button>
+              <button class="dropdown-item" data-export="txt">Plain Text (.txt)</button>
+              <button class="dropdown-item" data-export="print">Print / PDF</button>
             </div>
           </div>
 
-          <button id="btn-duplicate-note" class="btn-action" title="Duplicate Note (Cmd+D)">
-            <span>📋</span>
+          <button id="btn-duplicate-note" class="btn-action" title="Duplicate (⌘D)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </button>
 
-          <button id="btn-restore-note" class="btn-action btn-success" style="display: none;" title="Restore note from Trash">
-            <span>↩</span> Restore
-          </button>
-
-          <button id="btn-delete-note" class="btn-action btn-danger" title="Move to Trash / Delete">
-            <span>🗑️</span>
+          <button id="btn-restore-note" class="btn-action btn-success" style="display: none;" title="Restore note">Restore</button>
+          <button id="btn-delete-note" class="btn-action btn-danger" title="Delete">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
         </div>
       </div>
 
-      <!-- Tag chip row under title -->
       <div class="note-tags-bar" id="note-tags-bar">
-        <span class="tags-label">Tags:</span>
+        <span class="tags-label">Tags</span>
         <div id="active-note-tags" class="active-note-tags"></div>
         <div class="tag-input-wrap">
-          <input type="text" id="add-tag-input" placeholder="+ Add tag (Enter)" />
+          <input type="text" id="add-tag-input" placeholder="+ tag" />
         </div>
       </div>
 
-      <!-- Formatting Toolbar -->
+      <!-- Clean Minimal Formatting Toolbar -->
       <div class="editor-toolbar" id="editor-toolbar">
-        <button class="tool-btn" data-action="bold" title="Bold (**text**)"><strong>B</strong></button>
-        <button class="tool-btn" data-action="italic" title="Italic (*text*)"><em>I</em></button>
-        <button class="tool-btn" data-action="strike" title="Strikethrough (~~text~~)"><del>S</del></button>
+        <button class="tool-btn" data-action="bold" title="Bold"><strong>B</strong></button>
+        <button class="tool-btn" data-action="italic" title="Italic"><em>I</em></button>
+        <button class="tool-btn" data-action="strike" title="Strikethrough"><del>S</del></button>
         <div class="tool-divider"></div>
-        <button class="tool-btn" data-action="h1" title="Heading 1 (# Heading)">H1</button>
-        <button class="tool-btn" data-action="h2" title="Heading 2 (## Heading)">H2</button>
-        <button class="tool-btn" data-action="h3" title="Heading 3 (### Heading)">H3</button>
+        <button class="tool-btn" data-action="h1" title="Heading 1">H1</button>
+        <button class="tool-btn" data-action="h2" title="Heading 2">H2</button>
+        <button class="tool-btn" data-action="h3" title="Heading 3">H3</button>
         <div class="tool-divider"></div>
-        <button class="tool-btn" data-action="ul" title="Bullet List (- item)">• List</button>
-        <button class="tool-btn" data-action="ol" title="Numbered List (1. item)">1. List</button>
-        <button class="tool-btn" data-action="task" title="Task Checklist (- [ ] task)">☑ Task</button>
+        <button class="tool-btn" data-action="ul" title="List">• List</button>
+        <button class="tool-btn" data-action="task" title="Task List">☑ Task</button>
         <div class="tool-divider"></div>
-        <button class="tool-btn" data-action="quote" title="Quote (> quote)">“ Quote</button>
-        <button class="tool-btn" data-action="code" title="Code block (```)">&lt;/&gt;</button>
-        <button class="tool-btn" data-action="table" title="Insert Table">▦ Table</button>
-        <button class="tool-btn" data-action="link" title="Link ([text](url))">🔗 Link</button>
-        <button class="tool-btn" data-action="hr" title="Horizontal rule (---)">―</button>
+        <button class="tool-btn" data-action="quote" title="Quote">” Quote</button>
+        <button class="tool-btn" data-action="code" title="Code">&lt;/&gt;</button>
+        <button class="tool-btn" data-action="table" title="Table">Table</button>
+        <button class="tool-btn" data-action="link" title="Link">Link</button>
+        <button class="tool-btn" data-action="hr" title="Divider">—</button>
 
         <div class="tool-spacer"></div>
-        <button class="tool-btn tool-btn-highlight" id="btn-open-guide" title="Open Markdown Guide">
-          <span>📖</span> Guide
-        </button>
+        <button class="tool-btn" id="btn-open-guide" title="Markdown guide">Help</button>
       </div>
 
-      <!-- Workspace Area: Dual Panes & Outline Drawer -->
       <div class="workspace-wrapper">
         <div class="editor-workspace mode-split" id="editor-workspace">
-          <!-- Raw Markdown Input -->
           <div class="pane pane-editor" id="pane-editor">
-            <div class="pane-header">
-              <span class="pane-title">Markdown</span>
-              <span class="pane-hint">Source text</span>
-            </div>
-            <textarea
-              id="note-body"
-              class="markdown-textarea"
-              placeholder="Start writing in Markdown..."
-              spellcheck="true"
-            ></textarea>
+            <textarea id="note-body" class="markdown-textarea" placeholder="Start typing..." spellcheck="true"></textarea>
           </div>
-
-          <!-- Rendered HTML Preview & Editable Visual Text -->
           <div class="pane pane-preview" id="pane-preview">
-            <div class="pane-header">
-              <span class="pane-title">Preview</span>
-              <span class="pane-hint pane-hint-badge">Live Sync</span>
-            </div>
-            <div
-              id="note-preview-content"
-              class="markdown-body visual-editable"
-              contenteditable="true"
-              spellcheck="true"
-              data-placeholder="Start typing formatted text here..."
-            >
-              <!-- Rendered via marked.min.js & editable in app.js -->
-            </div>
+            <div id="note-preview-content" class="markdown-body visual-editable" contenteditable="true" spellcheck="true"></div>
           </div>
         </div>
 
-        <!-- Table of Contents / Outline Drawer -->
         <aside class="outline-drawer" id="outline-drawer" style="display: none;">
           <div class="outline-header">
-            <h4>📑 Table of Contents</h4>
+            <h4>Outline</h4>
             <button id="btn-close-outline" class="icon-btn-subtle">✕</button>
           </div>
-          <div class="outline-list" id="outline-list">
-            <!-- Dynamic Outline Tree populated from headings -->
-          </div>
+          <div class="outline-list" id="outline-list"></div>
         </aside>
       </div>
 
-      <!-- Bottom Status Bar -->
       <footer class="editor-statusbar">
         <div class="status-left">
-          <span id="save-status" class="status-indicator">All changes saved</span>
+          <span id="save-status" class="status-indicator">Saved</span>
           <span class="status-dot">•</span>
-          <span id="note-updated-time">Updated recently</span>
+          <span id="note-updated-time">Updated</span>
         </div>
         <div class="status-right">
-          <span id="note-stats-btn" class="stats-badge" title="Click for detailed note statistics">
+          <span id="note-stats-btn" class="stats-badge" title="Word & reading count">
             <span id="stats-words">0 words</span> · <span id="stats-readtime">1m read</span>
           </span>
         </div>
@@ -279,64 +226,55 @@
     </main>
   </div>
 
-  <!-- ==============================================
-       MODAL 1: Create / Rename Notebook
-       ============================================== -->
+  <!-- Modals -->
   <div id="notebook-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-card">
       <h3 id="modal-title">New Notebook</h3>
-      <input type="text" id="modal-input" placeholder="e.g. Work, Journal, Research" maxlength="40" />
+      <input type="text" id="modal-input" placeholder="Name" maxlength="40" />
       <div class="modal-actions">
         <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
-        <button id="modal-confirm-btn" class="btn-primary">Save</button>
+        <button id="modal-confirm-btn" class="btn-primary">Create</button>
       </div>
     </div>
   </div>
 
-  <!-- ==============================================
-       MODAL 2: Markdown Guide Reference
-       ============================================== -->
   <div id="guide-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-card modal-card-wide">
       <div class="modal-header-row">
-        <h3>📖 Markdown Reference Guide</h3>
+        <h3>Markdown Reference</h3>
         <button id="guide-close-btn" class="icon-btn-subtle">✕</button>
       </div>
       <div class="guide-content">
         <table class="guide-table">
           <thead>
-            <tr><th>Element</th><th>Syntax</th><th>Preview Result</th></tr>
+            <tr><th>Element</th><th>Syntax</th><th>Example</th></tr>
           </thead>
           <tbody>
-            <tr><td>Heading 1</td><td><code># Large Title</code></td><td><strong>Large Title</strong></td></tr>
-            <tr><td>Heading 2</td><td><code>## Section</code></td><td><strong>Section Title</strong></td></tr>
-            <tr><td>Bold</td><td><code>**bold text**</code></td><td><strong>bold text</strong></td></tr>
-            <tr><td>Italic</td><td><code>*italic text*</code></td><td><em>italic text</em></td></tr>
+            <tr><td>Heading 1</td><td><code># Title</code></td><td>Large heading</td></tr>
+            <tr><td>Heading 2</td><td><code>## Subheading</code></td><td>Section heading</td></tr>
+            <tr><td>Bold</td><td><code>**bold**</code></td><td><strong>bold</strong></td></tr>
+            <tr><td>Italic</td><td><code>*italic*</code></td><td><em>italic</em></td></tr>
             <tr><td>Strikethrough</td><td><code>~~text~~</code></td><td><del>text</del></td></tr>
-            <tr><td>Bullet List</td><td><code>- Item</code></td><td>• Item</td></tr>
+            <tr><td>List</td><td><code>- Item</code></td><td>• Item</td></tr>
             <tr><td>Numbered List</td><td><code>1. Item</code></td><td>1. Item</td></tr>
-            <tr><td>Task Checklist</td><td><code>- [ ] To do</code></td><td>☑ Checkbox</td></tr>
-            <tr><td>Blockquote</td><td><code>> Quote</code></td><td>Callout quote</td></tr>
-            <tr><td>Inline Code</td><td><code>`code`</code></td><td><code>code</code></td></tr>
-            <tr><td>Tags</td><td><code>#work #ideas</code></td><td>Auto-categorized</td></tr>
-            <tr><td>Link</td><td><code>[Text](url)</code></td><td><a href="#">Link</a></td></tr>
-            <tr><td>Table</td><td><code>| A | B |</code></td><td>Formatted Table</td></tr>
+            <tr><td>Checklist</td><td><code>- [ ] Task</code></td><td>☑ Checkbox</td></tr>
+            <tr><td>Quote</td><td><code>> Quote</code></td><td>Callout quote</td></tr>
+            <tr><td>Code</td><td><code>`code`</code></td><td><code>code</code></td></tr>
+            <tr><td>Tags</td><td><code>#work #todo</code></td><td>Categorized</td></tr>
+            <tr><td>Table</td><td><code>| A | B |</code></td><td>Table row</td></tr>
           </tbody>
         </table>
       </div>
       <div class="modal-actions">
-        <button id="guide-ok-btn" class="btn-primary">Done</button>
+        <button id="guide-ok-btn" class="btn-primary">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- ==============================================
-       MODAL 3: Detailed Note Statistics
-       ============================================== -->
   <div id="stats-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-card modal-card-compact">
       <div class="modal-header-row">
-        <h3>📊 Note Analytics</h3>
+        <h3>Statistics</h3>
         <button id="stats-close-btn" class="icon-btn-subtle">✕</button>
       </div>
       <div class="stats-grid">
@@ -363,60 +301,52 @@
     </div>
   </div>
 
-  <!-- ==============================================
-       MODAL 4: Keyboard Shortcuts Cheatsheet
-       ============================================== -->
   <div id="shortcuts-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-card modal-card-wide">
       <div class="modal-header-row">
-        <h3>⌨️ Keyboard Shortcuts</h3>
+        <h3>Keyboard Shortcuts</h3>
         <button id="shortcuts-close-btn" class="icon-btn-subtle">✕</button>
       </div>
       <div class="shortcuts-grid">
         <div class="shortcut-row">
-          <span class="shortcut-desc">New Note</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + N</kbd>
+          <span class="shortcut-desc">New note</span>
+          <kbd class="shortcut-key">⌘N</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">New Notebook</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + Shift + N</kbd>
+          <span class="shortcut-desc">New notebook</span>
+          <kbd class="shortcut-key">⌘⇧N</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Instant Search</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + F</kbd>
+          <span class="shortcut-desc">Search</span>
+          <kbd class="shortcut-key">⌘F</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Toggle Star / Pin Note</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + Shift + P</kbd>
+          <span class="shortcut-desc">Star / Unstar note</span>
+          <kbd class="shortcut-key">⌘⇧P</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Duplicate Note</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + D</kbd>
+          <span class="shortcut-desc">Duplicate note</span>
+          <kbd class="shortcut-key">⌘D</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Zen / Focus Mode</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + Shift + F</kbd>
+          <span class="shortcut-desc">Focus mode</span>
+          <kbd class="shortcut-key">⌘⇧F</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Switch Mode (Edit / Split / Preview)</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + 1 / 2 / 3</kbd>
+          <span class="shortcut-desc">Toggle outline</span>
+          <kbd class="shortcut-key">⌘⇧O</kbd>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc">Toggle Outline / Table of Contents</span>
-          <kbd class="shortcut-key">Cmd/Ctrl + Shift + O</kbd>
-        </div>
-        <div class="shortcut-row">
-          <span class="shortcut-desc">Close Modals / Clear Search</span>
-          <kbd class="shortcut-key">Esc</kbd>
+          <span class="shortcut-desc">Switch mode (Edit / Split / Preview)</span>
+          <kbd class="shortcut-key">⌘1 / ⌘2 / ⌘3</kbd>
         </div>
       </div>
       <div class="modal-actions">
-        <button id="shortcuts-ok-btn" class="btn-primary">Got it</button>
+        <button id="shortcuts-ok-btn" class="btn-primary">Done</button>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="vendor/marked.min.js"></script>
   <script src="app.js"></script>
 </body>
