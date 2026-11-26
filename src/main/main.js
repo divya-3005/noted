@@ -16,8 +16,9 @@ function createWindow() {
     minWidth: 800,
     minHeight: 540,
     title: 'Noted',
-    titleBarStyle: 'hiddenInset', // Modern macOS hidden title bar with traffic lights
+    titleBarStyle: 'hiddenInset',
     backgroundColor: '#ffffff',
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,
@@ -26,6 +27,14 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    mainWindow.focus();
+    if (process.platform === 'darwin' && app.dock) {
+      app.dock.show();
+    }
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
